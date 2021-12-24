@@ -55,9 +55,12 @@ const oauthBoot = {
     });
   },
 
-  guard: (req, res, next) => {
-    console.log(req.path);
-    next();
+  guard: (expressApp) => {
+    return (req, res, next) => {
+      console.log(req.path);
+      console.log(expressApp.get(req.path));
+      next();
+    };
   },
 };
 
