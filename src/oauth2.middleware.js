@@ -22,11 +22,12 @@ const oauthBoot = () => {
       return expressApp.post(path, ...handler);
     };
 
+    console.log("xx");
     return expressApp;
   };
 
   boot.addEndPoints = (expressBootApp) => {
-    expressApp.get("/auth", (req, res) => {
+    expressBootApp.get("/auth", (req, res) => {
       res.json({ x: false });
     });
   };
