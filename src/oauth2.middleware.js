@@ -11,6 +11,8 @@ const oauthBoot = () => {
     console.log("hi");
     next();
   };
+
+  return boot;
 };
 
 module.exports = oauthBoot;
