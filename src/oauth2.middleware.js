@@ -7,10 +7,10 @@ const oauthBoot = () => {
     //   return expressApp.post(path, ...handler);
     // };
 
-    // expressApp.get = (path, allowed, ...handler) => {
-    //   expressApp.set(path, allowed);
-    //   return expressApp.post(path, ...handler);
-    // };
+    expressApp.obGet = (path, allowed, ...handler) => {
+      expressApp.set(path, allowed);
+      return expressApp.get(path, ...handler);
+    };
 
     // expressApp.put = (path, allowed, ...handler) => {
     //   expressApp.set(path, allowed);
