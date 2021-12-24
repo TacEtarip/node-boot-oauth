@@ -17,10 +17,10 @@ const oauthBoot = () => {
     //   return expressApp.post(path, ...handler);
     // };
 
-    // expressApp.delete = (path, allowed, ...handler) => {
-    //   expressApp.set(path, allowed);
-    //   return expressApp.post(path, ...handler);
-    // };
+    expressApp.obDelete = (path, allowed, ...handler) => {
+      expressApp.set(path, allowed);
+      return expressApp.delete(path, ...handler);
+    };
 
     // console.log("xx");
     return expressApp;
