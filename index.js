@@ -1,2 +1,2 @@
-const oauth = require("./src/oauth2.middleware.js");
-exports.oauth = oauth;
+const oauthBoot = require("./src/oauth2.middleware.js");
+module.exports = oauthBoot;
