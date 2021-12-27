@@ -107,6 +107,12 @@ class OauthBoot {
             maxLength: null,
             nullable: false,
           },
+          identifier: {
+            defaultValue: null,
+            type: "varchar",
+            maxLength: 100,
+            nullable: false,
+          },
         },
         OAUTH2_ApplicationOption: {
           id: {
@@ -185,8 +191,28 @@ class OauthBoot {
           table.timestamps();
         });
 
-        const x = await this.knex.table("OAUTH2_Applications").columnInfo();
+        await this.knex.schema.createTable("OAUTH2_Roles", (table) => {
+          table.increments("id");
+          table.string("identifier", 100).notNullable().unique();
+          table.integer("applications_id").unsigned().notNullable();
+          table.foreign("applications_id").references("OAUTH2_Applications.id");
+          table.timestamps();
+        });
+
+        await this.knex.schema.createTable("OAUTH2_SubjectRole", (table) => {
+          table.increments("id");
+          table.integer("subject_id").unsigned().notNullable();
+          table.foreign("subject_id").references("OAUTH2_Subjects.id");
+          table.integer("roles_id").unsigned().notNullable();
+          table.foreign("roles_id").references("OAUTH2_Roles.id");
+          table.string("identifier", 100).notNullable().unique();
+        });
+
+        const x = await this.knex.table("OAUTH2_SubjectRole").columnInfo();
         console.log(x);
+
+        const y = await this.knex.table("OAUTH2_Roles").columnInfo();
+        console.log(y);
       } else {
         for (const tableExpected in tablesExpected) {
           if (Object.hasOwnProperty.call(tablesExpected, tableExpected)) {
@@ -223,6 +249,9 @@ class OauthBoot {
         "OAUTH2_Users",
         "OAUTH2_Clients",
         "OAUTH2_Subjects",
+        "OAUTH2_SubjectRole",
+        "OAUTH2_Roles",
+        "OAUTH2_Applications",
         "OAUTH2_Options",
       ];
       for (const tableName of tablesToDropInOrder) {
