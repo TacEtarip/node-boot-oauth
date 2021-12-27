@@ -17,27 +17,149 @@ class OauthBoot {
 
   async auditDataBase() {
     try {
-      const hasTableSubject = await this.knex.schema.hasTable(
-        "OAUTH2_Subjects"
-      );
-      if (!hasTableSubject) {
-        console.log("Creating Data Base");
-        await this.knex.schema
-          .dropTableIfExists("OAUTH2_Subjects")
-          .createTable("OAUTH2_Subjects", function (table) {
-            table.increments();
+      const tablesExpected = {
+        OAUTH2_Subjects: {
+          id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+          name: {
+            defaultValue: null,
+            type: "varchar",
+            maxLength: 45,
+            nullable: false,
+          },
+        },
+        OAUTH2_Users: {
+          id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+        },
+        OAUTH2_Clients: {
+          id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+        },
+        OAUTH2_SubjectRole: {
+          id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+        },
+        OAUTH2_Roles: {
+          id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+        },
+        OAUTH2_Applications: {
+          id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+        },
+        OAUTH2_ApplicationOption: {
+          id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+        },
+        OAUTH2_Option: {
+          id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+        },
+      };
 
-            table.string("name", 45).notNullable();
+      let falseCount = 0;
 
-            table.timestamps();
-          });
+      for (const tableExpected in tablesExpected) {
+        if (Object.hasOwnProperty.call(tablesExpected, tableExpected)) {
+          const result = await this.knex.schema.hasTable(tableExpected);
+          if (result === false) {
+            falseCount++;
+            break;
+          }
+        }
       }
-      const result = await this.knex.table("OAUTH2_Subjects").columnInfo();
-      console.log(result);
-      console.log(hasTableSubject);
+
+      if (falseCount > 0) {
+        console.log("Data base for auth will be create from the ground");
+      } else {
+        for (const tableExpected in tablesExpected) {
+          if (Object.hasOwnProperty.call(tablesExpected, tableExpected)) {
+            const [inconsistencies, error] = await this.auditTableColumn(
+              tableExpected,
+              tablesExpected[tableExpected]
+            );
+
+            if (error) {
+              throw new Error(
+                `An error ocurred while auditing table ${tableExpected}`
+              );
+            }
+
+            if (inconsistencies.length > 0) {
+              console.log(`Table ${tableExpected} inconsistencies in columns:`);
+              for (const inconsistency of inconsistencies) {
+                console.log(inconsistency + "/n");
+              }
+              console.log("Fix those inconsistencies or drop the schema");
+            }
+          }
+        }
+      }
     } catch (error) {
       console.log(error);
       throw new Error(error.message);
+    }
+  }
+
+  // { defaultValue: null, type: 'int', maxLength: null, nullable: false }
+
+  async auditTableColumn(tableName, columnsToMatch) {
+    try {
+      const columns = await this.knex.table(tableName).columnInfo();
+      const tableColumnInconsistencies = [];
+      for (const column in columnsToMatch) {
+        if (Object.hasOwnProperty.call(columnsToMatch, column)) {
+          if (!columns[column]) {
+            tableColumnInconsistencies.push(`Column ${column} does not exist`);
+          } else {
+            if (
+              JSON.stringify(columns[column]) ===
+              JSON.stringify(columnsToMatch[column])
+            )
+              tableColumnInconsistencies.push(
+                `Column ${column} is not compatible`
+              );
+          }
+        }
+      }
+
+      return [tableColumnInconsistencies, null];
+    } catch (error) {
+      console.log(error);
+      return [null, message.error];
     }
   }
 
