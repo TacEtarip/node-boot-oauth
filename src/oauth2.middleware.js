@@ -91,9 +91,39 @@ class OauthBoot {
             maxLength: null,
             nullable: false,
           },
+          subject_id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+          roles_id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+          identifier: {
+            defaultValue: null,
+            type: "varchar",
+            maxLength: 100,
+            nullable: false,
+          },
         },
         OAUTH2_Roles: {
           id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+          identifier: {
+            defaultValue: null,
+            type: "varchar",
+            maxLength: 100,
+            nullable: false,
+          },
+          applications_id: {
             defaultValue: null,
             type: "int",
             maxLength: null,
@@ -197,6 +227,7 @@ class OauthBoot {
           table.integer("applications_id").unsigned().notNullable();
           table.foreign("applications_id").references("OAUTH2_Applications.id");
           table.timestamps();
+          table.timestamps();
         });
 
         await this.knex.schema.createTable("OAUTH2_SubjectRole", (table) => {
@@ -210,9 +241,6 @@ class OauthBoot {
 
         const x = await this.knex.table("OAUTH2_SubjectRole").columnInfo();
         console.log(x);
-
-        const y = await this.knex.table("OAUTH2_Roles").columnInfo();
-        console.log(y);
       } else {
         for (const tableExpected in tablesExpected) {
           if (Object.hasOwnProperty.call(tablesExpected, tableExpected)) {
