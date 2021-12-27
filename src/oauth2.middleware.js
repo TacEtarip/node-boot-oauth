@@ -104,6 +104,9 @@ class OauthBoot {
 
       if (falseCount > 0) {
         console.log("Data base for auth will be create from the ground");
+
+        await this.dropTables();
+
         await this.knex.schema
           .dropTableIfExists("OAUTH2_Subjects")
           .createTable("OAUTH2_Subjects", (table) => {
@@ -122,7 +125,7 @@ class OauthBoot {
             table.timestamps();
           });
 
-        const x = await this.knex.table().columnInfo();
+        const x = await this.knex.table("OAUTH2_Users").columnInfo();
         console.log(x);
       } else {
         for (const tableExpected in tablesExpected) {
@@ -150,6 +153,17 @@ class OauthBoot {
       }
     } catch (error) {
       console.log(error);
+      throw new Error(error.message);
+    }
+  }
+
+  async dropTables() {
+    try {
+      const tablesToDropInOrder = ["OAUTH2_Users", "OAUTH2_Subjects"];
+      for (const tableName of tablesToDropInOrder) {
+        await this.knex.schema.dropTableIfExists(tableName);
+      }
+    } catch (error) {
       throw new Error(error.message);
     }
   }
