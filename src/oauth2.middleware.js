@@ -236,10 +236,24 @@ class OauthBoot {
           table.foreign("subject_id").references("OAUTH2_Subjects.id");
           table.integer("roles_id").unsigned().notNullable();
           table.foreign("roles_id").references("OAUTH2_Roles.id");
-          table.string("identifier", 100).notNullable().unique();
         });
 
-        const x = await this.knex.table("OAUTH2_SubjectRole").columnInfo();
+        await this.knex.schema.createTable(
+          "OAUTH2_ApplicationOption",
+          (table) => {
+            table.increments("id");
+            table.integer("options_id").unsigned().notNullable();
+            table.foreign("options_id").references("OAUTH2_Options.id");
+            table.integer("applications_id").unsigned().notNullable();
+            table
+              .foreign("applications_id")
+              .references("OAUTH2_Applications.id");
+          }
+        );
+
+        const x = await this.knex
+          .table("OAUTH2_ApplicationOption")
+          .columnInfo();
         console.log(x);
       } else {
         for (const tableExpected in tablesExpected) {
@@ -276,8 +290,8 @@ class OauthBoot {
       const tablesToDropInOrder = [
         "OAUTH2_Users",
         "OAUTH2_Clients",
-        "OAUTH2_Subjects",
         "OAUTH2_SubjectRole",
+        "OAUTH2_Subjects",
         "OAUTH2_Roles",
         "OAUTH2_Applications",
         "OAUTH2_Options",
