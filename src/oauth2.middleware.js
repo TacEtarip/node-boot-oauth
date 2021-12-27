@@ -11,6 +11,7 @@ class OauthBoot {
       this.addEndPoints();
     } catch (error) {
       console.log(error);
+      throw new Error(error.message);
     }
   }
 
@@ -19,6 +20,17 @@ class OauthBoot {
       const hasTableSubject = await this.knex.schema.hasTable(
         "OAUTH2_Subjects"
       );
+      if (!hasTableSubject) {
+        await this.knex.schema.hasTable("OAUTH2_Subjects", function (table) {
+          table.increments();
+
+          table.string("name", 45).notNullable();
+
+          table.timestamps();
+        });
+      }
+      const result = await this.knex.table("OAUTH2_Subjects").columnInfo();
+      console.log(result);
       console.log(hasTableSubject);
     } catch (error) {
       console.log(error);
