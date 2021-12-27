@@ -227,7 +227,6 @@ class OauthBoot {
           table.integer("applications_id").unsigned().notNullable();
           table.foreign("applications_id").references("OAUTH2_Applications.id");
           table.timestamps();
-          table.timestamps();
         });
 
         await this.knex.schema.createTable("OAUTH2_SubjectRole", (table) => {
@@ -292,6 +291,7 @@ class OauthBoot {
         "OAUTH2_Clients",
         "OAUTH2_SubjectRole",
         "OAUTH2_Subjects",
+        "OAUTH2_ApplicationOption",
         "OAUTH2_Roles",
         "OAUTH2_Applications",
         "OAUTH2_Options",
