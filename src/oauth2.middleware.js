@@ -21,13 +21,16 @@ class OauthBoot {
         "OAUTH2_Subjects"
       );
       if (!hasTableSubject) {
-        await this.knex.schema.hasTable("OAUTH2_Subjects", function (table) {
-          table.increments();
+        console.log("Creating Data Base");
+        await this.knex.schema
+          .dropTableIfExists("OAUTH2_Subjects")
+          .createTable("OAUTH2_Subjects", function (table) {
+            table.increments();
 
-          table.string("name", 45).notNullable();
+            table.string("name", 45).notNullable();
 
-          table.timestamps();
-        });
+            table.timestamps();
+          });
       }
       const result = await this.knex.table("OAUTH2_Subjects").columnInfo();
       console.log(result);
