@@ -1,5 +1,30 @@
-const oauthBoot = {
-  bootOauthExpress: (expressApp) => {
+class OauthBoot {
+  constructor(expressApp, knex) {
+    this.expressApp = expressApp;
+    this.knex = knex;
+    this.expressSecured = this.bootOauthExpress(expressApp);
+  }
+
+  async init() {
+    try {
+      await this.auditDataBase();
+      this.addEndPoints();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async auditDataBase() {
+    try {
+      const hasTableSubject = await this.knex.hasTable("OAUTH2_Subjects");
+      console.log(hasTableSubject);
+    } catch (error) {
+      console.log(error);
+      throw new Error(error.message);
+    }
+  }
+
+  bootOauthExpress(expressApp) {
     // expressApp.post = (path, allowed, ...handler) => {
     //   expressApp.set(path, allowed);
     //   return expressApp.post(path, ...handler);
@@ -22,9 +47,9 @@ const oauthBoot = {
 
     // console.log("xx");
     return expressApp;
-  },
+  }
 
-  bootOauthExpressRouter: (expressRouter) => {
+  static bootOauthExpressRouter(expressRouter) {
     // expressApp.post = (path, allowed, ...handler) => {
     //   expressApp.set(path, allowed);
     //   return expressApp.post(path, ...handler);
@@ -47,21 +72,21 @@ const oauthBoot = {
 
     // console.log("xx");
     return expressRouter;
-  },
+  }
 
-  addEndPoints: (expressBootApp) => {
-    expressBootApp.get("/auth", (req, res) => {
+  addEndPoints() {
+    this.expressSecured.get("/auth", (req, res) => {
       res.json({ x: false });
     });
-  },
+  }
 
-  guard: (expressApp) => {
+  guard() {
     return (req, res, next) => {
       console.log(req.path);
-      console.log(expressApp.get(req.path));
+      console.log(this.expressApp.get(req.path));
       next();
     };
-  },
-};
+  }
+}
 
-module.exports = oauthBoot;
+module.exports = OauthBoot;
