@@ -103,12 +103,6 @@ class OauthBoot {
             maxLength: null,
             nullable: false,
           },
-          identifier: {
-            defaultValue: null,
-            type: "varchar",
-            maxLength: 100,
-            nullable: false,
-          },
         },
         OAUTH2_Roles: {
           id: {
