@@ -323,18 +323,16 @@ class OauthBoot {
       const columns = await this.knex.table(tableName).columnInfo();
       const tableColumnInconsistencies = [];
       for (const column in columnsToMatch) {
-        if (Object.hasOwnProperty.call(columnsToMatch, column)) {
-          if (!columns[column]) {
-            tableColumnInconsistencies.push(`Column ${column} does not exist`);
-          } else {
-            if (
-              JSON.stringify(columns[column]) ===
-              JSON.stringify(columnsToMatch[column])
-            )
-              tableColumnInconsistencies.push(
-                `Column ${column} is not compatible`
-              );
-          }
+        if (!columns[column]) {
+          tableColumnInconsistencies.push(`Column ${column} does not exist`);
+        } else {
+          if (
+            JSON.stringify(columns[column]) !==
+            JSON.stringify(columnsToMatch[column])
+          )
+            tableColumnInconsistencies.push(
+              `Column ${column} is not compatible`
+            );
         }
       }
 
