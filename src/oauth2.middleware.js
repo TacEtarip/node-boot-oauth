@@ -107,26 +107,35 @@ class OauthBoot {
 
         await this.dropTables();
 
-        await this.knex.schema
-          .dropTableIfExists("OAUTH2_Subjects")
-          .createTable("OAUTH2_Subjects", (table) => {
-            table.increments("id");
-            table.string("name", 45).notNullable();
-            table.timestamps();
-          });
+        await this.knex.schema.createTable("OAUTH2_Subjects", (table) => {
+          table.increments("id");
+          table.string("name", 45).notNullable();
+          table.timestamps();
+        });
 
-        await this.knex.schema
-          .dropTableIfExists("OAUTH2_Users")
-          .createTable("OAUTH2_Users", (table) => {
-            table.increments("id");
-            table.integer("subject_id").unsigned().notNullable();
-            table.foreign("subject_id").references("OAUTH2_Subjects.id");
-            table.string("name", 45);
-            table.timestamps();
-          });
+        await this.knex.schema.createTable("OAUTH2_Users", (table) => {
+          table.increments("id");
+          table.integer("subject_id").unsigned().notNullable();
+          table.foreign("subject_id").references("OAUTH2_Subjects.id");
+          table.string("username", 45).notNullable();
+          table.string("password", 75).notNullable();
+          table.timestamps();
+        });
 
-        const x = await this.knex.table("OAUTH2_Users").columnInfo();
+        await this.knex.schema.createTable("OAUTH2_Clients", (table) => {
+          table.increments("id");
+          table.integer("subject_id").unsigned().notNullable();
+          table.foreign("subject_id").references("OAUTH2_Subjects.id");
+          table.string("identifier", 100).notNullable();
+          table.string("access_token", 255).notNullable();
+          table.timestamps();
+        });
+
+        const x = await this.knex.table("OAUTH2_Clients").columnInfo();
         console.log(x);
+
+        const y = await this.knex.table("OAUTH2_Users").columnInfo();
+        console.log(y);
       } else {
         for (const tableExpected in tablesExpected) {
           if (Object.hasOwnProperty.call(tablesExpected, tableExpected)) {
@@ -159,7 +168,11 @@ class OauthBoot {
 
   async dropTables() {
     try {
-      const tablesToDropInOrder = ["OAUTH2_Users", "OAUTH2_Subjects"];
+      const tablesToDropInOrder = [
+        "OAUTH2_Users",
+        "OAUTH2_Subjects",
+        "OAUTH2_Clients",
+      ];
       for (const tableName of tablesToDropInOrder) {
         await this.knex.schema.dropTableIfExists(tableName);
       }
