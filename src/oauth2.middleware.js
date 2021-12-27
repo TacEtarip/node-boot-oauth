@@ -123,6 +123,12 @@ class OauthBoot {
             maxLength: null,
             nullable: false,
           },
+          allowed: {
+            defaultValue: null,
+            type: "varchar",
+            maxLength: 75,
+            nullable: false,
+          },
         },
       };
 
@@ -173,7 +179,13 @@ class OauthBoot {
           table.timestamps();
         });
 
-        const x = await this.knex.table("OAUTH2_Options").columnInfo();
+        await this.knex.schema.createTable("OAUTH2_Applications", (table) => {
+          table.increments("id");
+          table.string("identifier", 100).notNullable().unique();
+          table.timestamps();
+        });
+
+        const x = await this.knex.table("OAUTH2_Applications").columnInfo();
         console.log(x);
       } else {
         for (const tableExpected in tablesExpected) {
