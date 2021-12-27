@@ -16,7 +16,9 @@ class OauthBoot {
 
   async auditDataBase() {
     try {
-      const hasTableSubject = await this.knex.hasTable("OAUTH2_Subjects");
+      const hasTableSubject = await this.knex.schema.hasTable(
+        "OAUTH2_Subjects"
+      );
       console.log(hasTableSubject);
     } catch (error) {
       console.log(error);
