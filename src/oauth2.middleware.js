@@ -39,12 +39,48 @@ class OauthBoot {
             maxLength: null,
             nullable: false,
           },
+          subject_id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+          username: {
+            defaultValue: null,
+            type: "varchar",
+            maxLength: 45,
+            nullable: false,
+          },
+          password: {
+            defaultValue: null,
+            type: "varchar",
+            maxLength: 75,
+            nullable: false,
+          },
         },
         OAUTH2_Clients: {
           id: {
             defaultValue: null,
             type: "int",
             maxLength: null,
+            nullable: false,
+          },
+          subject_id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+          identifier: {
+            defaultValue: null,
+            type: "varchar",
+            maxLength: 100,
+            nullable: false,
+          },
+          access_token: {
+            defaultValue: null,
+            type: "varchar",
+            maxLength: 255,
             nullable: false,
           },
         },
@@ -80,7 +116,7 @@ class OauthBoot {
             nullable: false,
           },
         },
-        OAUTH2_Option: {
+        OAUTH2_Options: {
           id: {
             defaultValue: null,
             type: "int",
@@ -117,7 +153,7 @@ class OauthBoot {
           table.increments("id");
           table.integer("subject_id").unsigned().notNullable();
           table.foreign("subject_id").references("OAUTH2_Subjects.id");
-          table.string("username", 45).notNullable();
+          table.string("username", 45).notNullable().unique();
           table.string("password", 75).notNullable();
           table.timestamps();
         });
@@ -126,16 +162,19 @@ class OauthBoot {
           table.increments("id");
           table.integer("subject_id").unsigned().notNullable();
           table.foreign("subject_id").references("OAUTH2_Subjects.id");
-          table.string("identifier", 100).notNullable();
+          table.string("identifier", 100).notNullable().unique();
           table.string("access_token", 255).notNullable();
           table.timestamps();
         });
 
-        const x = await this.knex.table("OAUTH2_Clients").columnInfo();
-        console.log(x);
+        await this.knex.schema.createTable("OAUTH2_Options", (table) => {
+          table.increments("id");
+          table.string("allowed", 75).notNullable().unique();
+          table.timestamps();
+        });
 
-        const y = await this.knex.table("OAUTH2_Users").columnInfo();
-        console.log(y);
+        const x = await this.knex.table("OAUTH2_Options").columnInfo();
+        console.log(x);
       } else {
         for (const tableExpected in tablesExpected) {
           if (Object.hasOwnProperty.call(tablesExpected, tableExpected)) {
@@ -172,6 +211,7 @@ class OauthBoot {
         "OAUTH2_Users",
         "OAUTH2_Clients",
         "OAUTH2_Subjects",
+        "OAUTH2_Options",
       ];
       for (const tableName of tablesToDropInOrder) {
         await this.knex.schema.dropTableIfExists(tableName);
