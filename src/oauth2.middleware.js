@@ -303,13 +303,18 @@ class OauthBoot {
             applications_id: masterId[0],
           });
 
-          await trx("OAUTH2_Roles").insert({
+          const roleId = await trx("OAUTH2_Roles").insert({
             applications_id: masterId[0],
             identifier: "masterAdmin",
           });
 
           const subjectId = await trx("OAUTH2_Subjects").insert({
             name: "Master Admin",
+          });
+
+          await trx("OAUTH2_SubjectRole").insert({
+            subject_id: subjectId[0],
+            roles_id: roleId[0],
           });
 
           const password = randomstring.generate();
@@ -319,8 +324,10 @@ class OauthBoot {
           await trx("OAUTH2_Users").insert({
             username: "admin",
             password: encryptedPassword,
-            subject_id: subjectId[0],
+            subject_id: subjectId,
           });
+
+          console.log("Created file credentials.txt in the cwd");
 
           await fs.writeFile(
             path.join(process.cwd(), "/credentials.txt"),
