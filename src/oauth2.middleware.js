@@ -448,7 +448,7 @@ class OauthBoot {
       "/user",
       this.validateBody({
         username: { type: "string" },
-        password: { type: "number" },
+        password: { type: "string" },
         name: { type: "string" },
       }),
       async (req, res) => {
@@ -480,6 +480,35 @@ class OauthBoot {
           });
 
           return res.status(201).json({ code: 200000, message: "User added" });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    this.expressSecured.post(
+      "/login",
+      his.validateBody({
+        username: { type: "string" },
+        password: { type: "string" },
+      }),
+      async (req, res) => {
+        try {
+          const { username, password } = req.body;
+          const user = await this.knex
+            .table("OAUTH2_Users")
+            .select()
+            .where({ username });
+          console.log(user);
+          return res.json({
+            message: `User ${username} logged in`,
+            code: 200000,
+            content: { jwt_token: "" },
+          });
         } catch (error) {
           console.log(error);
           return res.status(500).json({
