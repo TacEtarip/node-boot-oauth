@@ -211,7 +211,8 @@ class OauthBoot {
               for (const inconsistency of inconsistencies) {
                 console.log(inconsistency + "/n");
               }
-              console.log("Fix those inconsistencies or drop the schema");
+              console.log("Tables will be created from 0");
+              await this.createTables();
             }
           }
         }
@@ -226,73 +227,90 @@ class OauthBoot {
     try {
       await this.dropTables();
 
-      await this.knex.schema.createTable("OAUTH2_Subjects", (table) => {
-        table.increments("id");
-        table.string("name", 45).notNullable();
-        table.timestamps(true, true);
-      });
-
-      await this.knex.schema.createTable("OAUTH2_Users", (table) => {
-        table.increments("id");
-        table.integer("subject_id").unsigned().notNullable();
-        table.foreign("subject_id").references("OAUTH2_Subjects.id");
-        table.string("username", 45).notNullable().unique();
-        table.string("password", 75).notNullable();
-        table.timestamps(true, true);
-      });
-
-      await this.knex.schema.createTable("OAUTH2_Clients", (table) => {
-        table.increments("id");
-        table.integer("subject_id").unsigned().notNullable();
-        table.foreign("subject_id").references("OAUTH2_Subjects.id");
-        table.string("identifier", 100).notNullable().unique();
-        table.string("access_token", 255).notNullable();
-        table.timestamps(true, true);
-      });
-
-      await this.knex.schema.createTable("OAUTH2_Options", (table) => {
-        table.increments("id");
-        table.string("allowed", 75).notNullable().unique();
-        table.timestamps(true, true);
-      });
-
-      await this.knex.schema.createTable("OAUTH2_Applications", (table) => {
-        table.increments("id");
-        table.string("identifier", 100).notNullable().unique();
-        table.timestamps(true, true);
-      });
-
-      await this.knex.schema.createTable("OAUTH2_Roles", (table) => {
-        table.increments("id");
-        table.string("identifier", 100).notNullable().unique();
-        table.integer("applications_id").unsigned().notNullable();
-        table.foreign("applications_id").references("OAUTH2_Applications.id");
-        table.timestamps(true, true);
-      });
-
-      await this.knex.schema.createTable("OAUTH2_SubjectRole", (table) => {
-        table.increments("id");
-        table.integer("subject_id").unsigned().notNullable();
-        table.foreign("subject_id").references("OAUTH2_Subjects.id");
-        table.integer("roles_id").unsigned().notNullable();
-        table.foreign("roles_id").references("OAUTH2_Roles.id");
-      });
-
-      await this.knex.schema.createTable(
-        "OAUTH2_ApplicationOption",
-        (table) => {
-          table.increments("id");
-          table.integer("options_id").unsigned().notNullable();
-          table.foreign("options_id").references("OAUTH2_Options.id");
-          table.integer("applications_id").unsigned().notNullable();
-          table.foreign("applications_id").references("OAUTH2_Applications.id");
-        }
-      );
-
       await this.knex.transaction(async (trx) => {
         try {
+          await this.knex.schema
+            .createTable("OAUTH2_Subjects", (table) => {
+              table.increments("id");
+              table.string("name", 45).notNullable();
+              table.timestamps(true, true);
+            })
+            .transacting(trx);
+
+          await this.knex.schema
+            .createTable("OAUTH2_Users", (table) => {
+              table.increments("id");
+              table.integer("subject_id").unsigned().notNullable();
+              table.foreign("subject_id").references("OAUTH2_Subjects.id");
+              table.string("username", 45).notNullable().unique();
+              table.string("password", 75).notNullable();
+              table.timestamps(true, true);
+            })
+            .transacting(trx);
+
+          await this.knex.schema
+            .createTable("OAUTH2_Clients", (table) => {
+              table.increments("id");
+              table.integer("subject_id").unsigned().notNullable();
+              table.foreign("subject_id").references("OAUTH2_Subjects.id");
+              table.string("identifier", 100).notNullable().unique();
+              table.string("access_token", 255).notNullable();
+              table.timestamps(true, true);
+            })
+            .transacting(trx);
+
+          await this.knex.schema
+            .createTable("OAUTH2_Options", (table) => {
+              table.increments("id");
+              table.string("allowed", 75).notNullable().unique();
+              table.timestamps(true, true);
+            })
+            .transacting(trx);
+
+          await this.knex.schema
+            .createTable("OAUTH2_Applications", (table) => {
+              table.increments("id");
+              table.string("identifier", 100).notNullable().unique();
+              table.timestamps(true, true);
+            })
+            .transacting(trx);
+
+          await this.knex.schema
+            .createTable("OAUTH2_Roles", (table) => {
+              table.increments("id");
+              table.string("identifier", 100).notNullable().unique();
+              table.integer("applications_id").unsigned().notNullable();
+              table
+                .foreign("applications_id")
+                .references("OAUTH2_Applications.id");
+              table.timestamps(true, true);
+            })
+            .transacting(trx);
+
+          await this.knex.schema
+            .createTable("OAUTH2_SubjectRole", (table) => {
+              table.increments("id");
+              table.integer("subject_id").unsigned().notNullable();
+              table.foreign("subject_id").references("OAUTH2_Subjects.id");
+              table.integer("roles_id").unsigned().notNullable();
+              table.foreign("roles_id").references("OAUTH2_Roles.id");
+            })
+            .transacting(trx);
+
+          await this.knex.schema
+            .createTable("OAUTH2_ApplicationOption", (table) => {
+              table.increments("id");
+              table.integer("options_id").unsigned().notNullable();
+              table.foreign("options_id").references("OAUTH2_Options.id");
+              table.integer("applications_id").unsigned().notNullable();
+              table
+                .foreign("applications_id")
+                .references("OAUTH2_Applications.id");
+            })
+            .transacting(trx);
+
           const masterId = await this.knex
-            .insert({ identifier: "masterApp" })
+            .insert({ name: "masterApp" })
             .into("OAUTH2_Subjects")
             .transacting(trx);
 
