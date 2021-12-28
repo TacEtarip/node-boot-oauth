@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const randomstring = require("randomstring");
 const fs = require("fs").promises;
 const path = require("path");
@@ -499,15 +500,46 @@ class OauthBoot {
       async (req, res) => {
         try {
           const { username, password } = req.body;
-          const user = await this.knex
+          const preUser = await this.knex
             .table("OAUTH2_Users")
             .select()
-            .where({ username });
-          console.log(user);
+            .join(
+              "OAUTH2_SubjectRole",
+              "OAUTH2_Users.id",
+              "OAUTH2_SubjectRole.id"
+            )
+            .options({ nestTables: true })
+            .where("OAUTH2_Users.username", username);
+          if (preUser.length === 0) {
+            return res.status(404).json({
+              code: 400004,
+              message: "User not found",
+            });
+          }
+          const user = preUser[0];
+          const correctPassword = await bcrypt.compare(password, user.password);
+          if (!correctPassword) {
+            return res.status(403).json({
+              code: 400003,
+              message: "Incorrect password",
+            });
+          }
+          const token = jwt.sign(
+            {
+              data: {
+                subjectType: "user",
+                userId: user.id,
+                subjectId: "",
+                username: user.username,
+              },
+            },
+            "secret",
+            { expiresIn: "24h" }
+          );
           return res.json({
             message: `User ${username} logged in`,
             code: 200000,
-            content: { jwt_token: "" },
+            content: { jwt_token: token },
           });
         } catch (error) {
           console.log(error);
