@@ -492,7 +492,7 @@ class OauthBoot {
 
     this.expressSecured.post(
       "/login",
-      his.validateBody({
+      this.validateBody({
         username: { type: "string" },
         password: { type: "string" },
       }),
