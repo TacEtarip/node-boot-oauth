@@ -502,13 +502,12 @@ class OauthBoot {
           const { username, password } = req.body;
           const preUser = await this.knex
             .table("OAUTH2_Users")
-            .select()
+            .select("OAUTH2_SubjectRole.id as subjectRoleId", "OAUTH2_Users.*")
             .join(
               "OAUTH2_SubjectRole",
               "OAUTH2_Users.subject_id",
               "OAUTH2_SubjectRole.subject_id"
             )
-            .options({ nestTables: true })
             .where("OAUTH2_Users.username", username);
           console.log(preUser);
           const user = preUser[0];
