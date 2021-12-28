@@ -450,7 +450,7 @@ class OauthBoot {
       return JSON.stringify(aKeys) === JSON.stringify(bKeys);
     };
     return (req, res, next) => {
-      if (compareKeys(req.body, validationOptions))
+      if (!compareKeys(req.body, validationOptions))
         return res.status(400).json({ code: 400000, message: "Invalid body" });
 
       for (const option in validationOptions) {
