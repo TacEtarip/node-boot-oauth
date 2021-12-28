@@ -1,3 +1,5 @@
+const bcrypt = require("bcrypt");
+
 class OauthBoot {
   constructor(expressApp, knex) {
     this.expressApp = expressApp;
@@ -338,10 +340,10 @@ class OauthBoot {
   }
 
   bootOauthExpress(expressApp) {
-    // expressApp.post = (path, allowed, ...handler) => {
-    //   expressApp.set(path, allowed);
-    //   return expressApp.post(path, ...handler);
-    // };
+    expressApp.obPost = (path, allowed, ...handler) => {
+      expressApp.set(path, allowed);
+      return expressApp.post(path, ...handler);
+    };
 
     expressApp.obGet = (path, allowed, ...handler) => {
       expressApp.set(path, allowed);
@@ -388,9 +390,49 @@ class OauthBoot {
   }
 
   addEndPoints() {
-    this.expressSecured.get("/auth", (req, res) => {
-      res.json({ x: false });
-    });
+    this.expressSecured.obPost(
+      "/user",
+      validateBody({
+        username: { type: "string" },
+        password: { type: "number" },
+        name: { type: "string" },
+      }),
+      async (req, res) => {
+        try {
+          const { username, password, name } = req.body;
+          const encryptedPassword = await bcrypt.hash(password, 10);
+          const result = await this.knex.transaction(async (trx) => {
+            try {
+              const firstResult = await this.knex
+                .insert({ name })
+                .into("OAUTH2_Subjects")
+                .transacting(trx);
+              console.log(firstResult);
+              trx.commit;
+            } catch (error) {
+              trx.rollback;
+              console.log(error);
+              throw new Error(error.message);
+            }
+            // .then(async (ids) => {
+            //   books.forEach((book) => (book.catalogue_id = ids[0]));
+            //   return knex("books").insert(books).transacting(trx);
+            // })
+            // .then(trx.commit)
+            // .catch(trx.rollback);
+          });
+          console.log(result);
+          return res.status(201).json({ code: 200000, message: "User added" });
+          // await this.knex.table("OAUTH2_Subjects").insert({ name });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
   }
 
   guard() {
@@ -400,6 +442,48 @@ class OauthBoot {
       next();
     };
   }
+
+  validateBody = (validationOptions) => {
+    const compareKeys = (a, b) => {
+      var aKeys = Object.keys(a).sort();
+      var bKeys = Object.keys(b).sort();
+      return JSON.stringify(aKeys) === JSON.stringify(bKeys);
+    };
+    return (req, res, next) => {
+      if (compareKeys(req.body, validationOptions))
+        return res.status(400).json({ code: 400000, message: "Invalid body" });
+
+      for (const option in validationOptions) {
+        switch (validationOptions[option].type) {
+          case "string":
+            if (
+              !(
+                Object.prototype.toString.call(req.body[option]) ==
+                "[object String]"
+              )
+            ) {
+              return res.status(400).json({
+                code: 400000,
+                message: `Invalid body; ${option} is not an string`,
+              });
+            }
+            break;
+          case "number":
+            if (!!/^-?[\d.]+(?:e-?\d+)?$/.test(req.body[option])) {
+              return res.status(400).json({
+                code: 400000,
+                message: `Invalid body; ${option} is not a number`,
+              });
+            }
+            break;
+          default:
+            break;
+        }
+      }
+
+      next();
+    };
+  };
 }
 
 module.exports = OauthBoot;
