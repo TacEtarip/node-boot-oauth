@@ -392,7 +392,7 @@ class OauthBoot {
   addEndPoints() {
     this.expressSecured.post(
       "/user",
-      validateBody({
+      this.validateBody({
         username: { type: "string" },
         password: { type: "number" },
         name: { type: "string" },
