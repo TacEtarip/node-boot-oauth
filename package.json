@@ -11,6 +11,8 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "express": "^4.17.2",
-    "knex": "^0.95.15"
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^0.95.15",
+    "randomstring": "^1.2.1"
   }
 }

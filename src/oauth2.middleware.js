@@ -1,5 +1,7 @@
 const bcrypt = require("bcrypt");
-
+const randomstring = require("randomstring");
+const fs = require("fs").promises;
+const path = require("path");
 class OauthBoot {
   constructor(expressApp, knex) {
     this.expressApp = expressApp;
@@ -227,7 +229,7 @@ class OauthBoot {
       await this.knex.schema.createTable("OAUTH2_Subjects", (table) => {
         table.increments("id");
         table.string("name", 45).notNullable();
-        table.timestamps();
+        table.timestamps(true, true);
       });
 
       await this.knex.schema.createTable("OAUTH2_Users", (table) => {
@@ -236,7 +238,7 @@ class OauthBoot {
         table.foreign("subject_id").references("OAUTH2_Subjects.id");
         table.string("username", 45).notNullable().unique();
         table.string("password", 75).notNullable();
-        table.timestamps();
+        table.timestamps(true, true);
       });
 
       await this.knex.schema.createTable("OAUTH2_Clients", (table) => {
@@ -245,19 +247,19 @@ class OauthBoot {
         table.foreign("subject_id").references("OAUTH2_Subjects.id");
         table.string("identifier", 100).notNullable().unique();
         table.string("access_token", 255).notNullable();
-        table.timestamps();
+        table.timestamps(true, true);
       });
 
       await this.knex.schema.createTable("OAUTH2_Options", (table) => {
         table.increments("id");
         table.string("allowed", 75).notNullable().unique();
-        table.timestamps();
+        table.timestamps(true, true);
       });
 
       await this.knex.schema.createTable("OAUTH2_Applications", (table) => {
         table.increments("id");
         table.string("identifier", 100).notNullable().unique();
-        table.timestamps();
+        table.timestamps(true, true);
       });
 
       await this.knex.schema.createTable("OAUTH2_Roles", (table) => {
@@ -265,7 +267,7 @@ class OauthBoot {
         table.string("identifier", 100).notNullable().unique();
         table.integer("applications_id").unsigned().notNullable();
         table.foreign("applications_id").references("OAUTH2_Applications.id");
-        table.timestamps();
+        table.timestamps(true, true);
       });
 
       await this.knex.schema.createTable("OAUTH2_SubjectRole", (table) => {
@@ -286,6 +288,61 @@ class OauthBoot {
           table.foreign("applications_id").references("OAUTH2_Applications.id");
         }
       );
+
+      await this.knex.transaction(async (trx) => {
+        try {
+          const masterId = await this.knex
+            .insert({ identifier: "masterApp" })
+            .into("OAUTH2_Subjects")
+            .transacting(trx);
+
+          const optionId = await this.knex
+            .insert({ allowed: "*:*" })
+            .into("OAUTH2_Options")
+            .transacting(trx);
+
+          await this.knex
+            .insert({ options_id: optionId[0], applications_id: masterId[0] })
+            .into("OAUTH2_ApplicationOption")
+            .transacting(trx);
+
+          await this.knex
+            .insert({ applications_id: masterId[0], identifier: "masterAdmin" })
+            .into("OAUTH2_Roles")
+            .transacting(trx);
+
+          const subjectId = await this.knex
+            .insert({ name: "Master Admin" })
+            .into("OAUTH2_Subjects")
+            .transacting(trx);
+
+          const password = randomstring.generate();
+
+          const encryptedPassword = await bcrypt.hash(password, 16);
+
+          await this.knex
+            .insert({
+              username: "admin",
+              password: encryptedPassword,
+              subject_id: subjectId[0],
+            })
+            .into("OAUTH2_Users")
+            .transacting(trx);
+
+          await fs.writeFile(
+            path.join(process.cwd(), "/credentials.txt"),
+            `Dont lose this file or the credentials in it.\n
+              Username: admin \n
+              Password: ${password}`
+          );
+
+          trx.commit;
+        } catch (error) {
+          trx.rollback;
+          console.log(error);
+          throw new Error(error.message);
+        }
+      });
     } catch (error) {
       console.log(error);
       throw new Error(error.message);
@@ -401,29 +458,31 @@ class OauthBoot {
         try {
           const { username, password, name } = req.body;
           const encryptedPassword = await bcrypt.hash(password, 10);
-          const result = await this.knex.transaction(async (trx) => {
+
+          await this.knex.transaction(async (trx) => {
             try {
               const firstResult = await this.knex
                 .insert({ name })
                 .into("OAUTH2_Subjects")
                 .transacting(trx);
-              console.log(firstResult);
+              const secondResult = await this.knex
+                .insert({
+                  username,
+                  password: encryptedPassword,
+                  subject_id: firstResult[0],
+                })
+                .into("OAUTH2_Users")
+                .transacting(trx);
+              console.log(secondResult);
               trx.commit;
             } catch (error) {
               trx.rollback;
               console.log(error);
               throw new Error(error.message);
             }
-            // .then(async (ids) => {
-            //   books.forEach((book) => (book.catalogue_id = ids[0]));
-            //   return knex("books").insert(books).transacting(trx);
-            // })
-            // .then(trx.commit)
-            // .catch(trx.rollback);
           });
-          console.log(result);
+
           return res.status(201).json({ code: 200000, message: "User added" });
-          // await this.knex.table("OAUTH2_Subjects").insert({ name });
         } catch (error) {
           console.log(error);
           return res.status(500).json({
