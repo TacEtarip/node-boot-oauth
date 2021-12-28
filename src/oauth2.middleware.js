@@ -191,7 +191,7 @@ class OauthBoot {
       }
 
       if (falseCount > 0) {
-        await createTables();
+        await this.createTables();
       } else {
         for (const tableExpected in tablesExpected) {
           if (Object.hasOwnProperty.call(tablesExpected, tableExpected)) {
