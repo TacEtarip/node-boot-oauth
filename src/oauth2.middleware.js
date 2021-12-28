@@ -516,6 +516,7 @@ class OauthBoot {
               message: "User not found",
             });
           }
+          console.log(preUser);
           const user = preUser[0];
           const correctPassword = await bcrypt.compare(password, user.password);
           if (!correctPassword) {
