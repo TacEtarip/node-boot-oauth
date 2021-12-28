@@ -508,6 +508,7 @@ class OauthBoot {
               "OAUTH2_Users.subject_id",
               "OAUTH2_SubjectRole.subject_id"
             )
+            .options({ nestTables: true })
             .where("OAUTH2_Users.username", username);
           console.log(preUser);
           const user = preUser[0];
