@@ -354,9 +354,9 @@ class OauthBoot {
               Password: ${password}`
           );
 
-          trx.commit;
+          trx.commit();
         } catch (error) {
-          trx.rollback;
+          trx.rollback();
           console.log(error);
           throw new Error(error.message);
         }
@@ -492,9 +492,9 @@ class OauthBoot {
                 .into("OAUTH2_Users")
                 .transacting(trx);
               console.log(secondResult);
-              trx.commit;
+              trx.commit();
             } catch (error) {
-              trx.rollback;
+              trx.rollback();
               console.log(error);
               throw new Error(error.message);
             }
