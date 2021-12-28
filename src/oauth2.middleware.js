@@ -505,17 +505,10 @@ class OauthBoot {
             .select()
             .join(
               "OAUTH2_SubjectRole",
-              "OAUTH2_Users.id",
-              "OAUTH2_SubjectRole.id"
+              "OAUTH2_Users.subject_id",
+              "OAUTH2_SubjectRole.subject_id"
             )
-            .options({ nestTables: true })
             .where("OAUTH2_Users.username", username);
-          if (preUser.length === 0) {
-            return res.status(404).json({
-              code: 400004,
-              message: "User not found",
-            });
-          }
           console.log(preUser);
           const user = preUser[0];
           const correctPassword = await bcrypt.compare(password, user.password);
@@ -529,13 +522,17 @@ class OauthBoot {
             {
               data: {
                 subjectType: "user",
-                userId: user.id,
-                subjectId: "",
+                id: user.id,
                 username: user.username,
               },
             },
             "secret",
-            { expiresIn: "24h" }
+            {
+              expiresIn: "24h",
+              audience: {
+                username,
+              },
+            }
           );
           return res.json({
             message: `User ${username} logged in`,
