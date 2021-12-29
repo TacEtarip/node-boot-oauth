@@ -592,6 +592,7 @@ class OauthBoot {
       console.log(req.path);
       console.log("user", res.locals.user);
       const exp = this.expressSecured.get(req.path);
+      console.log("exp", exp);
       if (exp === ":") {
         next();
       }
