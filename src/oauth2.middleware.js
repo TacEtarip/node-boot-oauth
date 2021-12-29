@@ -590,7 +590,9 @@ class OauthBoot {
   guard() {
     return (req, res, next) => {
       console.log(req.path);
-      this.expressSecured.get(req.path);
+      console.log("user", res.locals.user);
+      const exp = this.expressSecured.get(req.path);
+      console.log(exp);
       next();
     };
   }
