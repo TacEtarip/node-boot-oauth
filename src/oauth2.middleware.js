@@ -569,19 +569,19 @@ class OauthBoot {
           // { audience: auth.split(" ")[2] + " " + auth.split(" ")[3] },
           (err, decode) => {
             if (err) {
-              req.locals.user = undefined;
+              res.locals.user = undefined;
               return res.status(401).json({
                 code: 400001,
                 message: "Incorrect token",
               });
             } else {
-              req.locals.user = decode;
+              res.locals.user = decode;
             }
             next();
           }
         );
       } else {
-        req.locals.user = undefined;
+        res.locals.user = undefined;
         next();
       }
     };
