@@ -510,8 +510,12 @@ class OauthBoot {
             )
             .where("OAUTH2_Users.username", username);
           console.log(preUser);
-          const user = preUser[0];
-          const correctPassword = await bcrypt.compare(password, user.password);
+          const user = this.joinSearch(preUser, "id", "subject_id");
+          console.log(user);
+          const correctPassword = await bcrypt.compare(
+            password,
+            user[0].password
+          );
           if (!correctPassword) {
             return res.status(403).json({
               code: 400003,
@@ -598,6 +602,34 @@ class OauthBoot {
 
       next();
     };
+  };
+
+  joinSearch = (baseSearch, differentiator, ...similarFields) => {
+    const newArray = [];
+    for (let index = 0; index < baseSearch.length; index++) {
+      if (index === 0) {
+        for (const similarField of similarFields) {
+          const temporalFieldValue = baseSearch[index][similarField];
+          baseSearch[index][similarField] = [temporalFieldValue];
+        }
+        newArray.push(baseSearch[index]);
+      } else if (
+        baseSearch[index][differentiator] !==
+        baseSearch[index - 1][differentiator]
+      ) {
+        for (const similarField of similarFields) {
+          const temporalFieldValue = baseSearch[index][similarField];
+          baseSearch[index][similarField] = [temporalFieldValue];
+        }
+        newArray.push(baseSearch[index]);
+      } else {
+        for (const similarField of similarFields) {
+          const temporalFieldValue = baseSearch[index][similarField];
+          newArray[newArray.length - 1][similarField].push(temporalFieldValue);
+        }
+      }
+    }
+    return newArray;
   };
 }
 
