@@ -592,8 +592,10 @@ class OauthBoot {
       console.log(req.path);
       console.log("user", res.locals.user);
       const exp = this.expressSecured.get(req.path);
-      console.log(exp);
-      next();
+      if (exp === ":") {
+        next();
+      }
+      return res.json({ code: 403100, message: "User not authorized" });
     };
   }
 
