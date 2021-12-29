@@ -4,10 +4,11 @@ const randomstring = require("randomstring");
 const fs = require("fs").promises;
 const path = require("path");
 class OauthBoot {
-  constructor(expressApp, knex) {
+  constructor(expressApp, knex, jwtSecret) {
     this.expressApp = expressApp;
     this.knex = knex;
     this.expressSecured = this.bootOauthExpress(expressApp);
+    this.jwtSecret = jwtSecret;
   }
 
   async init() {
@@ -509,9 +510,7 @@ class OauthBoot {
               "OAUTH2_SubjectRole.subject_id"
             )
             .where("OAUTH2_Users.username", username);
-          console.log(preUser);
           const user = this.joinSearch(preUser, "id", "subject_id");
-          console.log(user);
           const correctPassword = await bcrypt.compare(
             password,
             user[0].password
@@ -530,7 +529,7 @@ class OauthBoot {
                 username: user.username,
               },
             },
-            "secret",
+            this.jwtSecret,
             {
               expiresIn: "24h",
               subject: username,
@@ -554,9 +553,32 @@ class OauthBoot {
 
   guard() {
     return (req, res, next) => {
-      console.log(req.path);
-      console.log(this.expressApp.get(req.path));
-      next();
+      if (
+        req.headers &&
+        req.headers.authorization &&
+        req.headers.authorization.split(" ")[0] === "AK"
+      ) {
+        const auth = req.headers.authorization;
+        jwt.verify(
+          auth.split(" ")[1],
+          config[process.env.NODE_ENV].jwtKey,
+          { audience: auth.split(" ")[2] + " " + auth.split(" ")[3] },
+          (err, decode) => {
+            if (err) {
+              req.user = undefined;
+              return res.status(401).json({ message: "Usuario No Autorizado" });
+            } else {
+              req.user = decode;
+            }
+            next();
+          }
+        );
+      } else {
+        req.user = undefined;
+        console.log(req.path);
+        console.log(this.expressApp.get(req.path));
+        next();
+      }
     };
   }
 
