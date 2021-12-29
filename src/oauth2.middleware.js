@@ -533,9 +533,7 @@ class OauthBoot {
             "secret",
             {
               expiresIn: "24h",
-              audience: {
-                username,
-              },
+              subject: username,
             }
           );
           return res.json({
