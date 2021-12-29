@@ -14,6 +14,8 @@ class OauthBoot {
   async init() {
     try {
       await this.auditDataBase();
+      this.expressSecured.use(this.decodeToken());
+      this.expressSecured.use(this.guard());
       this.addEndPoints();
     } catch (error) {
       console.log(error);
@@ -492,8 +494,9 @@ class OauthBoot {
       }
     );
 
-    this.expressSecured.post(
+    this.expressSecured.obPost(
       "/login",
+      ":",
       this.validateBody({
         username: { type: "string" },
         password: { type: "string" },
@@ -516,8 +519,8 @@ class OauthBoot {
             user[0].password
           );
           if (!correctPassword) {
-            return res.status(403).json({
-              code: 400003,
+            return res.status(401).json({
+              code: 400001,
               message: "Incorrect password",
             });
           }
@@ -532,7 +535,7 @@ class OauthBoot {
             this.jwtSecret,
             {
               expiresIn: "24h",
-              subject: username,
+              // subject: username,
             }
           );
           return res.json({
@@ -551,7 +554,7 @@ class OauthBoot {
     );
   }
 
-  guard() {
+  decodeToken() {
     return (req, res, next) => {
       if (
         req.headers &&
@@ -559,26 +562,36 @@ class OauthBoot {
         req.headers.authorization.split(" ")[0] === "AK"
       ) {
         const auth = req.headers.authorization;
+        console.log(req.headers.authorization);
         jwt.verify(
           auth.split(" ")[1],
-          config[process.env.NODE_ENV].jwtKey,
-          { audience: auth.split(" ")[2] + " " + auth.split(" ")[3] },
+          this.jwtSecret,
+          // { audience: auth.split(" ")[2] + " " + auth.split(" ")[3] },
           (err, decode) => {
             if (err) {
-              req.user = undefined;
-              return res.status(401).json({ message: "Usuario No Autorizado" });
+              req.locals.user = undefined;
+              return res.status(401).json({
+                code: 400001,
+                message: "Incorrect token",
+              });
             } else {
-              req.user = decode;
+              req.locals.user = decode;
             }
             next();
           }
         );
       } else {
-        req.user = undefined;
-        console.log(req.path);
-        console.log(this.expressApp.get(req.path));
+        req.locals.user = undefined;
         next();
       }
+    };
+  }
+
+  guard() {
+    return (req, res, next) => {
+      console.log(req.path);
+      this.expressSecured.get(req.path);
+      next();
     };
   }
 
