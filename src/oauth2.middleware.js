@@ -513,11 +513,8 @@ class OauthBoot {
               "OAUTH2_SubjectRole.subject_id"
             )
             .where("OAUTH2_Users.username", username);
-          const user = this.joinSearch(preUser, "id", "subject_id");
-          const correctPassword = await bcrypt.compare(
-            password,
-            user[0].password
-          );
+          const user = this.joinSearch(preUser, "id", "subject_id")[0];
+          const correctPassword = await bcrypt.compare(password, user.password);
           if (!correctPassword) {
             return res.status(401).json({
               code: 400001,
@@ -593,9 +590,8 @@ class OauthBoot {
       console.log("user", res.locals.user);
       const exp = this.expressSecured.get(req.path);
       console.log("exp", exp);
-      if (exp === ":") {
-        return next();
-      }
+      if (exp === ":") return next();
+
       return res.json({ code: 403100, message: "User not authorized" });
     };
   }
