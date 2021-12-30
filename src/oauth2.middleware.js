@@ -354,6 +354,7 @@ class OauthBoot {
 
           const subjectId = await trx("OAUTH2_Subjects").insert({
             name: "Master Admin",
+            applications_id: applicationId[0],
           });
 
           await trx("OAUTH2_SubjectRole").insert({
