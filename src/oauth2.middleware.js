@@ -316,7 +316,7 @@ class OauthBoot {
             name: "Master Admin",
           });
 
-          await trx(" ").insert({
+          await trx("OAUTH2_SubjectRole").insert({
             subject_id: subjectId[0],
             roles_id: roleId[0],
           });
