@@ -594,29 +594,34 @@ class OauthBoot {
   }
 
   guard() {
-    return (req, res, next) => {
-      console.log(req.path);
-      console.log("user", res.locals.user);
-      const exp = this.expressSecured.get(req.path);
-      console.log("exp", exp);
-      if (exp === ":") return next();
-      const user = res.locals.user;
-      if (!user) {
-        return res.json({ code: 403100, message: "User not authorized" });
+    return async (req, res, next) => {
+      try {
+        console.log(req.path);
+        console.log("user", res.locals.user);
+        const exp = this.expressSecured.get(req.path);
+        console.log("exp", exp);
+        if (exp === ":") return next();
+        const user = res.locals.user;
+        if (!user) {
+          return res.json({ code: 403100, message: "User not authorized" });
+        }
+        const subjectTableToSearch =
+          user.subjectType === "user" ? "OAUTH2_Users" : "OAUTH2_Clients";
+        const roles = await this.knex
+          .table(subjectTableToSearch)
+          .select("OAUTH2_SubjectRole.roles_id as roles", "OAUTH2_Users.*")
+          .join(
+            "OAUTH2_SubjectRole",
+            `${subjectTableToSearch}.subject_id`,
+            "OAUTH2_SubjectRole.subject_id"
+          )
+          .where(`${subjectTableToSearch}.id`, user.id);
+        console.log(this.joinSearch(roles, "id", "roles")[0]);
+        next();
+      } catch (error) {
+        console.log(error);
+        return res.json({ code: 500000, message: error.message });
       }
-      const subjectTableToSearch =
-        user.subjectType === "user" ? "OAUTH2_Users" : "OAUTH2_Clients";
-      const roles = await this.knex
-        .table(subjectTableToSearch)
-        .select("OAUTH2_SubjectRole.roles_id as roles", "OAUTH2_Users.*")
-        .join(
-          "OAUTH2_SubjectRole",
-          `${subjectTableToSearch}.subject_id`,
-          "OAUTH2_SubjectRole.subject_id"
-        )
-        .where(`${subjectTableToSearch}.id`, user.id);
-      console.log(this.joinSearch(roles, "id", "roles")[0]);
-      next();
     };
   }
 
