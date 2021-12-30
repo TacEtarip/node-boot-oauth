@@ -186,6 +186,20 @@ class OauthBoot {
             nullable: false,
           },
         },
+        OAUTH2_ApplicationPart: {
+          id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+          applicationPart_id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+        },
       };
 
       let falseCount = 0;
@@ -237,9 +251,26 @@ class OauthBoot {
   async createTables() {
     try {
       await this.dropTables();
+
+      await this.knex.schema.createTable("OAUTH2_Applications", (table) => {
+        table.increments("id");
+        table.string("identifier", 100).notNullable().unique();
+        table.timestamps(true, true);
+      });
+
+      await this.knex.schema.createTable("OAUTH2_ApplicationPart", (table) => {
+        table.increments("id");
+        table.string("identifier", 100).notNullable().unique();
+        table.integer("applications_id").unsigned().notNullable();
+        table.foreign("applications_id").references("OAUTH2_Applications.id");
+        table.timestamps(true, true);
+      });
+
       await this.knex.schema.createTable("OAUTH2_Subjects", (table) => {
         table.increments("id");
         table.string("name", 45).notNullable();
+        table.integer("applications_id").unsigned().notNullable();
+        table.foreign("applications_id").references("OAUTH2_Applications.id");
         table.timestamps(true, true);
       });
 
@@ -261,17 +292,13 @@ class OauthBoot {
         table.timestamps(true, true);
       });
 
-      await this.knex.schema.createTable("OAUTH2_Applications", (table) => {
-        table.increments("id");
-        table.string("identifier", 100).notNullable().unique();
-        table.timestamps(true, true);
-      });
-
       await this.knex.schema.createTable("OAUTH2_Options", (table) => {
         table.increments("id");
         table.string("allowed", 75).notNullable().unique();
-        table.integer("applications_id").unsigned().notNullable();
-        table.foreign("applications_id").references("OAUTH2_Applications.id");
+        table.integer("applicationPart_id").unsigned().notNullable();
+        table
+          .foreign("applicationPart_id")
+          .references("OAUTH2_ApplicationPart.id");
         table.timestamps(true, true);
       });
 
@@ -367,6 +394,7 @@ class OauthBoot {
         "OAUTH2_RoleOption",
         "OAUTH2_Roles",
         "OAUTH2_Options",
+        "OAUTH2_ApplicationPart",
         "OAUTH2_Applications",
       ];
       for (const tableName of tablesToDropInOrder) {
@@ -626,7 +654,16 @@ class OauthBoot {
             "OAUTH2_RoleOption.options_id"
           )
           .where(`${subjectTableToSearch}.id`, user.id);
-        console.log(this.joinSearch(userAllowed, "id", "allowedPatterns")[0]);
+        const userWithPatters = this.joinSearch(
+          userAllowed,
+          "id",
+          "allowedPatterns"
+        )[0];
+        const masterPatternIndex = userWithPatters.allowedPatterns.findIndexOf(
+          (ap) => ap === "*:*" || ap === exp
+        );
+        if (masterPatternIndex !== -1) {
+        }
         next();
       } catch (error) {
         console.log(error);
