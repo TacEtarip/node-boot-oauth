@@ -146,7 +146,7 @@ class OauthBoot {
             nullable: false,
           },
         },
-        OAUTH2_ApplicationOption: {
+        OAUTH2_RoleOption: {
           id: {
             defaultValue: null,
             type: "int",
@@ -159,7 +159,7 @@ class OauthBoot {
             maxLength: null,
             nullable: false,
           },
-          applications_id: {
+          roles_id: {
             defaultValue: null,
             type: "int",
             maxLength: null,
@@ -168,6 +168,12 @@ class OauthBoot {
         },
         OAUTH2_Options: {
           id: {
+            defaultValue: null,
+            type: "int",
+            maxLength: null,
+            nullable: false,
+          },
+          applications_id: {
             defaultValue: null,
             type: "int",
             maxLength: null,
@@ -195,6 +201,7 @@ class OauthBoot {
       }
 
       if (falseCount > 0) {
+        console.log("Tables will be created from 0");
         await this.createTables();
       } else {
         for (const tableExpected in tablesExpected) {
