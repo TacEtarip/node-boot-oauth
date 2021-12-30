@@ -254,17 +254,17 @@ class OauthBoot {
         table.timestamps(true, true);
       });
 
+      await this.knex.schema.createTable("OAUTH2_Applications", (table) => {
+        table.increments("id");
+        table.string("identifier", 100).notNullable().unique();
+        table.timestamps(true, true);
+      });
+
       await this.knex.schema.createTable("OAUTH2_Options", (table) => {
         table.increments("id");
         table.string("allowed", 75).notNullable().unique();
         table.integer("applications_id").unsigned().notNullable();
         table.foreign("applications_id").references("OAUTH2_Applications.id");
-        table.timestamps(true, true);
-      });
-
-      await this.knex.schema.createTable("OAUTH2_Applications", (table) => {
-        table.increments("id");
-        table.string("identifier", 100).notNullable().unique();
         table.timestamps(true, true);
       });
 
