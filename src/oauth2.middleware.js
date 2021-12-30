@@ -554,14 +554,16 @@ class OauthBoot {
   decodeToken() {
     return (req, res, next) => {
       if (
-        req.headers &&
-        req.headers.authorization &&
-        req.headers.authorization.split(" ")[0] === "AK"
+        (req.headers &&
+          req.headers.authorization &&
+          req.headers.authorization.split(" ")[0] === "AK") ||
+        req.query["access_token"]
       ) {
-        const auth = req.headers.authorization;
+        const authToken =
+          req.query["access_token"] || req.headers.authorization.split(" ")[1];
         console.log(req.headers.authorization);
         jwt.verify(
-          auth.split(" ")[1],
+          authToken,
           this.jwtSecret,
           // { audience: auth.split(" ")[2] + " " + auth.split(" ")[3] },
           (err, decode) => {
