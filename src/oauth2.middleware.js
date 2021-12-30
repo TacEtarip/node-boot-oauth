@@ -257,6 +257,8 @@ class OauthBoot {
       await this.knex.schema.createTable("OAUTH2_Options", (table) => {
         table.increments("id");
         table.string("allowed", 75).notNullable().unique();
+        table.integer("applications_id").unsigned().notNullable();
+        table.foreign("applications_id").references("OAUTH2_Applications.id");
         table.timestamps(true, true);
       });
 
@@ -282,16 +284,13 @@ class OauthBoot {
         table.foreign("roles_id").references("OAUTH2_Roles.id");
       });
 
-      await this.knex.schema.createTable(
-        "OAUTH2_ApplicationOption",
-        (table) => {
-          table.increments("id");
-          table.integer("options_id").unsigned().notNullable();
-          table.foreign("options_id").references("OAUTH2_Options.id");
-          table.integer("applications_id").unsigned().notNullable();
-          table.foreign("applications_id").references("OAUTH2_Applications.id");
-        }
-      );
+      await this.knex.schema.createTable("OAUTH2_RoleOption", (table) => {
+        table.increments("id");
+        table.integer("options_id").unsigned().notNullable();
+        table.foreign("options_id").references("OAUTH2_Options.id");
+        table.integer("roles_id").unsigned().notNullable();
+        table.foreign("roles_id").references("OAUTH2_Roles.id");
+      });
       await this.knex.transaction(async (trx) => {
         try {
           const masterId = await trx("OAUTH2_Applications").insert({
@@ -299,12 +298,8 @@ class OauthBoot {
           });
 
           const optionId = await trx("OAUTH2_Options").insert({
-            allowed: "*:*",
-          });
-
-          await trx("OAUTH2_ApplicationOption").insert({
-            options_id: optionId[0],
             applications_id: masterId[0],
+            allowed: "*:*",
           });
 
           const roleId = await trx("OAUTH2_Roles").insert({
@@ -312,11 +307,16 @@ class OauthBoot {
             identifier: "masterAdmin",
           });
 
+          await trx("OAUTH2_RoleOption").insert({
+            options_id: optionId[0],
+            roles_id: roleId[0],
+          });
+
           const subjectId = await trx("OAUTH2_Subjects").insert({
             name: "Master Admin",
           });
 
-          await trx("OAUTH2_SubjectRole").insert({
+          await trx(" ").insert({
             subject_id: subjectId[0],
             roles_id: roleId[0],
           });
@@ -336,7 +336,7 @@ class OauthBoot {
           await fs.writeFile(
             path.join(process.cwd(), "/credentials.txt"),
             `Dont lose this file or the credentials in it.\n
-              Username: admin \n
+              Username: admin \n   
               Password: ${password}`
           );
         } catch (error) {
@@ -357,7 +357,7 @@ class OauthBoot {
         "OAUTH2_Clients",
         "OAUTH2_SubjectRole",
         "OAUTH2_Subjects",
-        "OAUTH2_ApplicationOption",
+        "OAUTH2_RoleOption",
         "OAUTH2_Roles",
         "OAUTH2_Applications",
         "OAUTH2_Options",
@@ -513,11 +513,8 @@ class OauthBoot {
               "OAUTH2_SubjectRole.subject_id"
             )
             .where("OAUTH2_Users.username", username);
-          const user = this.joinSearch(preUser, "id", "subject_id");
-          const correctPassword = await bcrypt.compare(
-            password,
-            user[0].password
-          );
+          const user = this.joinSearch(preUser, "id", "subject_id")[0];
+          const correctPassword = await bcrypt.compare(password, user.password);
           if (!correctPassword) {
             return res.status(401).json({
               code: 400001,
@@ -593,9 +590,9 @@ class OauthBoot {
       console.log("user", res.locals.user);
       const exp = this.expressSecured.get(req.path);
       console.log("exp", exp);
-      if (exp === ":") {
-        return next();
-      }
+      if (exp === ":") return next();
+      this.knex.table("");
+      console.log();
       return res.json({ code: 403100, message: "User not authorized" });
     };
   }
