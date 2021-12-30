@@ -591,8 +591,6 @@ class OauthBoot {
       const exp = this.expressSecured.get(req.path);
       console.log("exp", exp);
       if (exp === ":") return next();
-      this.knex.table("");
-      console.log();
       return res.json({ code: 403100, message: "User not authorized" });
     };
   }
