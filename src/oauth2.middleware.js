@@ -260,7 +260,7 @@ class OauthBoot {
 
       await this.knex.schema.createTable("OAUTH2_ApplicationPart", (table) => {
         table.increments("id");
-        table.string("identifier", 100).notNullable().unique();
+        table.string("partIdentifier", 100).notNullable();
         table.integer("applications_id").unsigned().notNullable();
         table.foreign("applications_id").references("OAUTH2_Applications.id");
         table.timestamps(true, true);
@@ -294,7 +294,7 @@ class OauthBoot {
 
       await this.knex.schema.createTable("OAUTH2_Options", (table) => {
         table.increments("id");
-        table.string("allowed", 75).notNullable().unique();
+        table.string("allowed", 75).notNullable();
         table.integer("applicationPart_id").unsigned().notNullable();
         table
           .foreign("applicationPart_id")
@@ -325,19 +325,25 @@ class OauthBoot {
         table.integer("roles_id").unsigned().notNullable();
         table.foreign("roles_id").references("OAUTH2_Roles.id");
       });
+
       await this.knex.transaction(async (trx) => {
         try {
-          const masterId = await trx("OAUTH2_Applications").insert({
+          const applicationId = await trx("OAUTH2_Applications").insert({
             identifier: "masterApp",
           });
 
+          const applicationPartId = await trx("OAUTH2_ApplicationPart").insert({
+            applications_id: applicationId[0],
+            partIdentifier: "auth",
+          });
+
           const optionId = await trx("OAUTH2_Options").insert({
-            applications_id: masterId[0],
+            applicationPart_id: applicationPartId[0],
             allowed: "*:*",
           });
 
           const roleId = await trx("OAUTH2_Roles").insert({
-            applications_id: masterId[0],
+            applications_id: applicationId[0],
             identifier: "masterAdmin",
           });
 
