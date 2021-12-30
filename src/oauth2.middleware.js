@@ -609,14 +609,19 @@ class OauthBoot {
           user.subjectType === "user" ? "OAUTH2_Users" : "OAUTH2_Clients";
         const roles = await this.knex
           .table(subjectTableToSearch)
-          .select("OAUTH2_SubjectRole.roles_id as roles", "OAUTH2_Users.*")
+          .select("OAUTH2_RoleOption.options_id as options", "OAUTH2_Users.*")
           .join(
             "OAUTH2_SubjectRole",
             `${subjectTableToSearch}.subject_id`,
             "OAUTH2_SubjectRole.subject_id"
           )
+          .join(
+            "OAUTH2_RoleOption",
+            `OAUTH2_RoleOption.roles_id`,
+            "OAUTH2_SubjectRole.roles_id"
+          )
           .where(`${subjectTableToSearch}.id`, user.id);
-        console.log(this.joinSearch(roles, "id", "roles")[0]);
+        console.log(roles);
         next();
       } catch (error) {
         console.log(error);
