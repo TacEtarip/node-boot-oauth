@@ -607,9 +607,9 @@ class OauthBoot {
         }
         const subjectTableToSearch =
           user.subjectType === "user" ? "OAUTH2_Users" : "OAUTH2_Clients";
-        const roles = await this.knex
+        const userAllowed = await this.knex
           .table(subjectTableToSearch)
-          .select("OAUTH2_RoleOption.options_id as options", "OAUTH2_Users.*")
+          .select("OAUTH2_Options.allowed as allowedPatterns", "OAUTH2_Users.*")
           .join(
             "OAUTH2_SubjectRole",
             `${subjectTableToSearch}.subject_id`,
@@ -620,8 +620,13 @@ class OauthBoot {
             `OAUTH2_RoleOption.roles_id`,
             "OAUTH2_SubjectRole.roles_id"
           )
+          .join(
+            "OAUTH2_Options",
+            `OAUTH2_Options.id`,
+            "OAUTH2_RoleOption.options_id"
+          )
           .where(`${subjectTableToSearch}.id`, user.id);
-        console.log(roles);
+        console.log(this.joinSearch(userAllowed, "id", "allowedPatterns")[0]);
         next();
       } catch (error) {
         console.log(error);
