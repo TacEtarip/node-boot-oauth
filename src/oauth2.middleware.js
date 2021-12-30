@@ -359,8 +359,8 @@ class OauthBoot {
         "OAUTH2_Subjects",
         "OAUTH2_RoleOption",
         "OAUTH2_Roles",
-        "OAUTH2_Applications",
         "OAUTH2_Options",
+        "OAUTH2_Applications",
       ];
       for (const tableName of tablesToDropInOrder) {
         await this.knex.schema.dropTableIfExists(tableName);
