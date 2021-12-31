@@ -742,7 +742,7 @@ class OauthBoot {
           .table(subjectTableToSearch)
           .select(
             "OAUTH2_Options.allowed as allowedTerm",
-            "OAUTH2_Users.*",
+            // "OAUTH2_Users.*",
             "OAUTH2_ApplicationPart.partIdentifier as applicationPart"
           )
           .join(
