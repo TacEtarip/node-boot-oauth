@@ -740,7 +740,11 @@ class OauthBoot {
           user.subjectType === "user" ? "OAUTH2_Users" : "OAUTH2_Clients";
         const userAllowed = await this.knex
           .table(subjectTableToSearch)
-          .select("OAUTH2_Options.allowed as allowedTerm", "OAUTH2_Users.*")
+          .select(
+            "OAUTH2_Options.allowed as allowedTerm",
+            "OAUTH2_Users.*",
+            "OAUTH2_ApplicationPart.partIdentifier as applicationPart"
+          )
           .join(
             "OAUTH2_SubjectRole",
             `${subjectTableToSearch}.subject_id`,
