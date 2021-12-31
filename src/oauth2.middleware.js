@@ -461,9 +461,11 @@ class OauthBoot {
 
           await fs.writeFile(
             path.join(process.cwd(), "/credentials.txt"),
-            `Dont lose this file or the credentials in it.\n
+            `Credentials for the admin user in it.\n
               Username: admin \n   
-              Password: ${password}`
+              Password: ${password}
+              Credentials for the admin client in it.\n
+              access_token: ${access_token}`
           );
         } catch (error) {
           console.log(error);
