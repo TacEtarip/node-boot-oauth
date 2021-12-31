@@ -339,31 +339,89 @@ class OauthBoot {
       await this.knex.transaction(async (trx) => {
         try {
           const applicationId = await trx("OAUTH2_Applications").insert({
-            identifier: "masterApp",
+            identifier: "OAUTH2_master",
           });
 
-          const applicationPartId = await trx("OAUTH2_ApplicationPart").insert({
-            applications_id: applicationId[0],
-            partIdentifier: "auth",
-          });
+          const applicationPartId = await trx("OAUTH2_ApplicationPart").insert([
+            {
+              applications_id: applicationId[0],
+              partIdentifier: "OAUTH2_global",
+            },
+            {
+              applications_id: applicationId[0],
+              partIdentifier: "OAUTH2_user",
+            },
+            {
+              applications_id: applicationId[0],
+              partIdentifier: "OAUTH2_client",
+            },
+          ]);
 
-          const optionId = await trx("OAUTH2_Options").insert({
-            applicationPart_id: applicationPartId[0],
-            allowed: "*:*",
-          });
+          console.log(applicationPartId);
+
+          const oauthInsert = [
+            {
+              applicationPart_id: applicationPartId[0],
+              allowed: "*",
+            },
+            {
+              applicationPart_id: applicationPartId[1],
+              allowed: "*",
+            },
+            {
+              applicationPart_id: applicationPartId[1],
+              allowed: "create",
+            },
+            {
+              applicationPart_id: applicationPartId[1],
+              allowed: "update",
+            },
+            {
+              applicationPart_id: applicationPartId[1],
+              allowed: "delete",
+            },
+            {
+              applicationPart_id: applicationPartId[1],
+              allowed: "select",
+            },
+            {
+              applicationPart_id: applicationPartId[2],
+              allowed: "*",
+            },
+            {
+              applicationPart_id: applicationPartId[2],
+              allowed: "create",
+            },
+            {
+              applicationPart_id: applicationPartId[2],
+              allowed: "update",
+            },
+            {
+              applicationPart_id: applicationPartId[2],
+              allowed: "delete",
+            },
+            {
+              applicationPart_id: applicationPartId[2],
+              allowed: "select",
+            },
+          ];
+
+          const optionId = await trx("OAUTH2_Options").insert(oauthInsert);
 
           const roleId = await trx("OAUTH2_Roles").insert({
             applications_id: applicationId[0],
-            identifier: "masterAdmin",
+            identifier: "admin",
           });
 
-          await trx("OAUTH2_RoleOption").insert({
-            options_id: optionId[0],
-            roles_id: roleId[0],
-          });
+          await trx("OAUTH2_RoleOption").insert([
+            {
+              options_id: optionId[0],
+              roles_id: roleId[0],
+            },
+          ]);
 
           const subjectId = await trx("OAUTH2_Subjects").insert({
-            name: "Master Admin",
+            name: "Admin",
             applications_id: applicationId[0],
           });
 
@@ -374,11 +432,28 @@ class OauthBoot {
 
           const password = randomstring.generate();
 
-          const encryptedPassword = await bcrypt.hash(password, 16);
+          const encryptedPassword = await bcrypt.hash(password, 10);
+
+          const access_token = jwt.sign(
+            {
+              data: {
+                subjectType: "client",
+                identifier: "admin",
+                id: 0,
+              },
+            },
+            this.jwtSecret
+          );
 
           await trx("OAUTH2_Users").insert({
             username: "admin",
             password: encryptedPassword,
+            subject_id: subjectId,
+          });
+
+          await trx("OAUTH2_Clients").insert({
+            identifier: "admin",
+            access_token,
             subject_id: subjectId,
           });
 
