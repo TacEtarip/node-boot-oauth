@@ -363,7 +363,7 @@ class OauthBoot {
             const applicationPartId = await trx(
               "OAUTH2_ApplicationPart"
             ).insert(part);
-            applicationPartIds.push(applicationPartId);
+            applicationPartIds.push(applicationPartId[0]);
           }
 
           console.log(applicationPartIds);
