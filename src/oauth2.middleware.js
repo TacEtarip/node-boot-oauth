@@ -224,6 +224,7 @@ class OauthBoot {
         console.log("Tables will be created from 0");
         await this.createTables();
       } else {
+        let reCreate = false;
         for (const tableExpected in tablesExpected) {
           if (Object.hasOwnProperty.call(tablesExpected, tableExpected)) {
             const [inconsistencies, error] = await this.auditTableColumn(
@@ -238,14 +239,17 @@ class OauthBoot {
             }
 
             if (inconsistencies.length > 0) {
+              reCreate = true;
               console.log(`Table ${tableExpected} inconsistencies in columns:`);
               for (const inconsistency of inconsistencies) {
                 console.log(inconsistency + "/n");
               }
               console.log("Tables will be created from 0");
-              await this.createTables();
             }
           }
+        }
+        if (reCreate) {
+          await this.createTables();
         }
       }
     } catch (error) {
