@@ -361,47 +361,47 @@ class OauthBoot {
 
           const oauthInsert = [
             {
-              applicationPart_id: applicationPartId[0],
+              applicationPart_id: 1,
               allowed: "*",
             },
             {
-              applicationPart_id: applicationPartId[1],
+              applicationPart_id: 2,
               allowed: "*",
             },
             {
-              applicationPart_id: applicationPartId[1],
+              applicationPart_id: 2,
               allowed: "create",
             },
             {
-              applicationPart_id: applicationPartId[1],
+              applicationPart_id: 2,
               allowed: "update",
             },
             {
-              applicationPart_id: applicationPartId[1],
+              applicationPart_id: 2,
               allowed: "delete",
             },
             {
-              applicationPart_id: applicationPartId[1],
+              applicationPart_id: 2,
               allowed: "select",
             },
             {
-              applicationPart_id: applicationPartId[2],
+              applicationPart_id: 3,
               allowed: "*",
             },
             {
-              applicationPart_id: applicationPartId[2],
+              applicationPart_id: 3,
               allowed: "create",
             },
             {
-              applicationPart_id: applicationPartId[2],
+              applicationPart_id: 3,
               allowed: "update",
             },
             {
-              applicationPart_id: applicationPartId[2],
+              applicationPart_id: 3,
               allowed: "delete",
             },
             {
-              applicationPart_id: applicationPartId[2],
+              applicationPart_id: 3,
               allowed: "select",
             },
           ];
@@ -439,7 +439,7 @@ class OauthBoot {
               data: {
                 subjectType: "client",
                 identifier: "admin",
-                id: 0,
+                id: 1,
               },
             },
             this.jwtSecret
