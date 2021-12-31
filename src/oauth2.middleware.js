@@ -762,6 +762,7 @@ class OauthBoot {
             "OAUTH2_Options.applicationPart_id"
           )
           .where(`${subjectTableToSearch}.id`, user.id);
+        console.log(userAllowed);
         // const userWithPatters = this.joinSearch(
         //   userAllowed,
         //   "id",
