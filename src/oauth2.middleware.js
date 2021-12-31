@@ -370,47 +370,47 @@ class OauthBoot {
 
           const oauthInsert = [
             {
-              applicationPart_id: partsToInsert[0],
+              applicationPart_id: applicationPartIds[0],
               allowed: "*",
             },
             {
-              applicationPart_id: partsToInsert[1],
+              applicationPart_id: applicationPartIds[1],
               allowed: "*",
             },
             {
-              applicationPart_id: partsToInsert[1],
+              applicationPart_id: applicationPartIds[1],
               allowed: "create",
             },
             {
-              applicationPart_id: partsToInsert[1],
+              applicationPart_id: applicationPartIds[1],
               allowed: "update",
             },
             {
-              applicationPart_id: partsToInsert[1],
+              applicationPart_id: applicationPartIds[1],
               allowed: "delete",
             },
             {
-              applicationPart_id: partsToInsert[1],
+              applicationPart_id: applicationPartIds[1],
               allowed: "select",
             },
             {
-              applicationPart_id: partsToInsert[2],
+              applicationPart_id: applicationPartIds[2],
               allowed: "*",
             },
             {
-              applicationPart_id: partsToInsert[2],
+              applicationPart_id: applicationPartIds[2],
               allowed: "create",
             },
             {
-              applicationPart_id: partsToInsert[2],
+              applicationPart_id: applicationPartIds[2],
               allowed: "update",
             },
             {
-              applicationPart_id: partsToInsert[2],
+              applicationPart_id: applicationPartIds[2],
               allowed: "delete",
             },
             {
-              applicationPart_id: partsToInsert[2],
+              applicationPart_id: applicationPartIds[2],
               allowed: "select",
             },
           ];
