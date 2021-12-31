@@ -173,7 +173,7 @@ class OauthBoot {
             maxLength: null,
             nullable: false,
           },
-          applications_id: {
+          applicationPart_id: {
             defaultValue: null,
             type: "int",
             maxLength: null,
@@ -193,7 +193,13 @@ class OauthBoot {
             maxLength: null,
             nullable: false,
           },
-          applicationPart_id: {
+          partIdentifier: {
+            defaultValue: null,
+            type: "varchar",
+            maxLength: 75,
+            nullable: false,
+          },
+          applications_id: {
             defaultValue: null,
             type: "int",
             maxLength: null,
