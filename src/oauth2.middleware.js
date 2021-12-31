@@ -196,7 +196,7 @@ class OauthBoot {
           partIdentifier: {
             defaultValue: null,
             type: "varchar",
-            maxLength: 75,
+            maxLength: 100,
             nullable: false,
           },
           applications_id: {
