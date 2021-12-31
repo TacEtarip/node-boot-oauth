@@ -740,7 +740,7 @@ class OauthBoot {
           user.subjectType === "user" ? "OAUTH2_Users" : "OAUTH2_Clients";
         const userAllowed = await this.knex
           .table(subjectTableToSearch)
-          .select("OAUTH2_Options.allowed as allowedPatterns", "OAUTH2_Users.*")
+          .select("OAUTH2_Options.allowed as allowedTerm", "OAUTH2_Users.*")
           .join(
             "OAUTH2_SubjectRole",
             `${subjectTableToSearch}.subject_id`,
@@ -756,17 +756,22 @@ class OauthBoot {
             `OAUTH2_Options.id`,
             "OAUTH2_RoleOption.options_id"
           )
+          .join(
+            "OAUTH2_ApplicationPart",
+            `OAUTH2_ApplicationPart.id`,
+            "OAUTH2_Options.applicationPart_id"
+          )
           .where(`${subjectTableToSearch}.id`, user.id);
-        const userWithPatters = this.joinSearch(
-          userAllowed,
-          "id",
-          "allowedPatterns"
-        )[0];
-        const masterPatternIndex = userWithPatters.allowedPatterns.findIndexOf(
-          (ap) => ap === "*:*" || ap === exp
-        );
-        if (masterPatternIndex !== -1) {
-        }
+        // const userWithPatters = this.joinSearch(
+        //   userAllowed,
+        //   "id",
+        //   "allowedPatterns"
+        // )[0];
+        // const masterPatternIndex = userWithPatters.allowedPatterns.findIndexOf(
+        //   (ap) => ap === "*:*" || ap === exp
+        // );
+        // if (masterPatternIndex !== -1) {
+        // }
         next();
       } catch (error) {
         console.log(error);
