@@ -342,7 +342,9 @@ class OauthBoot {
             identifier: "OAUTH2_master",
           });
 
-          const applicationPartId = await trx("OAUTH2_ApplicationPart").insert([
+          const applicationPartIds = [];
+
+          const partsToInsert = [
             {
               applications_id: applicationId[0],
               partIdentifier: "OAUTH2_global",
@@ -355,53 +357,60 @@ class OauthBoot {
               applications_id: applicationId[0],
               partIdentifier: "OAUTH2_client",
             },
-          ]);
+          ];
 
-          console.log(applicationPartId);
+          for (const part of partsToInsert) {
+            const applicationPartId = await trx(
+              "OAUTH2_ApplicationPart"
+            ).insert(part);
+            partsToInsert.push(applicationPartId);
+          }
+
+          console.log(partsToInsert);
 
           const oauthInsert = [
             {
-              applicationPart_id: 1,
+              applicationPart_id: partsToInsert[0],
               allowed: "*",
             },
             {
-              applicationPart_id: 2,
+              applicationPart_id: partsToInsert[1],
               allowed: "*",
             },
             {
-              applicationPart_id: 2,
+              applicationPart_id: partsToInsert[1],
               allowed: "create",
             },
             {
-              applicationPart_id: 2,
+              applicationPart_id: partsToInsert[1],
               allowed: "update",
             },
             {
-              applicationPart_id: 2,
+              applicationPart_id: partsToInsert[1],
               allowed: "delete",
             },
             {
-              applicationPart_id: 2,
+              applicationPart_id: partsToInsert[1],
               allowed: "select",
             },
             {
-              applicationPart_id: 3,
+              applicationPart_id: partsToInsert[2],
               allowed: "*",
             },
             {
-              applicationPart_id: 3,
+              applicationPart_id: partsToInsert[2],
               allowed: "create",
             },
             {
-              applicationPart_id: 3,
+              applicationPart_id: partsToInsert[2],
               allowed: "update",
             },
             {
-              applicationPart_id: 3,
+              applicationPart_id: partsToInsert[2],
               allowed: "delete",
             },
             {
-              applicationPart_id: 3,
+              applicationPart_id: partsToInsert[2],
               allowed: "select",
             },
           ];
