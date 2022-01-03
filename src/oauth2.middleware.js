@@ -586,8 +586,9 @@ class OauthBoot {
   }
 
   addEndPoints() {
-    this.expressSecured.post(
+    this.expressSecured.obPost(
       "/user",
+      "OAUTH2_user:create",
       this.validateBody({
         username: { type: "string" },
         password: { type: "string" },
@@ -600,28 +601,52 @@ class OauthBoot {
 
           await this.knex.transaction(async (trx) => {
             try {
-              const firstResult = await this.knex
-                .insert({ name })
-                .into("OAUTH2_Subjects")
-                .transacting(trx);
-              const secondResult = await this.knex
-                .insert({
-                  username,
-                  password: encryptedPassword,
-                  subject_id: firstResult[0],
-                })
-                .into("OAUTH2_Users")
-                .transacting(trx);
-              console.log(secondResult);
-              trx.commit();
+              const firstResult = await trx("OAUTH2_Subjects").insert({ name });
+              await trx("OAUTH2_Users").insert({
+                username,
+                password: encryptedPassword,
+                subject_id: firstResult[0],
+              });
             } catch (error) {
-              trx.rollback();
-              console.log(error);
               throw new Error(error.message);
             }
           });
 
           return res.status(201).json({ code: 200000, message: "User added" });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    this.expressSecured.obGet(
+      "/user",
+      "OAUTH2_user:select",
+      async (req, res) => {
+        try {
+          const users = await this.knex
+            .table("OAUTH2_Users")
+            .select(
+              "OAUTH2_Users.username",
+              "OAUTH2_Users.id",
+              "OAUTH2_SubjectRole.name"
+            )
+            .join(
+              "OAUTH2_Subjects",
+              `OAUTH2_Users.subject_id`,
+              "OAUTH2_Subjects.id"
+            );
+          return res
+            .status(201)
+            .json({
+              code: 200000,
+              message: "Select completed",
+              content: users,
+            });
         } catch (error) {
           console.log(error);
           return res.status(500).json({
@@ -772,6 +797,8 @@ class OauthBoot {
           "applicationPart",
           "allowedTerm"
         );
+        console.log(parsedExp);
+        console.log(patterns);
         const masterPatternIndex = patterns.findIndex(
           (p) =>
             (p.applicationPart === "OAUTH2_global" &&
@@ -781,6 +808,7 @@ class OauthBoot {
             (p.applicationPart === parsedExp[0] &&
               p.allowedTerm.indexOf(parsedExp[1]) !== -1)
         );
+        console.log(masterPatternIndex);
         if (masterPatternIndex !== -1) return next();
         return res.json({ code: 403100, message: "User not authorized" });
       } catch (error) {
