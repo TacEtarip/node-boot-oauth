@@ -526,6 +526,8 @@ class OauthBoot {
             this.jwtSecret
           );
 
+          const encryptedAccessToken = await bcrypt.hash(access_token, 10);
+
           await trx("OAUTH2_Users").insert({
             username: "admin",
             password: encryptedPassword,
@@ -534,7 +536,7 @@ class OauthBoot {
 
           await trx("OAUTH2_Clients").insert({
             identifier: "admin",
-            access_token,
+            access_token: encryptedAccessToken,
             subject_id: subjectId,
           });
 
@@ -657,7 +659,7 @@ class OauthBoot {
 
   addEndPoints() {
     this.expressSecured.obPost(
-      "/user",
+      "/auth/user",
       "OAUTH2_user:create",
       this.validateBody({
         username: { type: "string" },
@@ -698,7 +700,7 @@ class OauthBoot {
     );
 
     this.expressSecured.obPost(
-      "/role",
+      "/auth/role",
       "OAUTH2_role:create",
       this.validateBody({
         identifier: { type: "string" },
@@ -734,7 +736,7 @@ class OauthBoot {
     );
 
     this.expressSecured.obPost(
-      "/application",
+      "/auth/application",
       "OAUTH2_application:create",
       this.validateBody({
         identifier: { type: "string" },
@@ -784,7 +786,7 @@ class OauthBoot {
     );
 
     this.expressSecured.obPost(
-      "/option",
+      "/auth/option",
       "OAUTH2_option:create",
       this.validateBody({
         allowed: { type: "string" },
@@ -811,7 +813,7 @@ class OauthBoot {
     );
 
     this.expressSecured.obGet(
-      "/user",
+      "/auth/user",
       "OAUTH2_user:select",
       async (req, res) => {
         try {
@@ -864,7 +866,7 @@ class OauthBoot {
     );
 
     this.expressSecured.obPost(
-      "/login",
+      "/auth/login",
       ":",
       this.validateBody({
         username: { type: "string" },
