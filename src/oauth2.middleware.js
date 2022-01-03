@@ -732,6 +732,10 @@ class OauthBoot {
         const exp = this.expressSecured.get(req.path);
         console.log("exp", exp);
         if (exp === ":") return next();
+        const parsedExp = exp.split(":");
+        if (parsedExp.length !== 2) {
+          return res.json({ code: 403200, message: "Bad guard input" });
+        }
         const user = res.locals.user;
         if (!user) {
           return res.json({ code: 403100, message: "User not authorized" });
@@ -781,6 +785,14 @@ class OauthBoot {
         // const masterPatternIndex = userWithPatters.allowedPatterns.findIndexOf(
         //   (ap) => ap === "*:*" || ap === exp
         // );
+        const masterPatternIndex = patterns.findIndex(
+          (p) =>
+            (p.applicationPart === "OAUTH2_global" &&
+              p.allowedTerm.indexOf("*") !== -1) ||
+            (p.applicationPart === parsedExp[0] &&
+              p.allowedTerm.indexOf("*") !== -1)
+        );
+        console.log(masterPatternIndex);
         // if (masterPatternIndex !== -1) {
         // }
         next();
