@@ -781,7 +781,7 @@ class OauthBoot {
             (p.applicationPart === parsedExp[0] &&
               p.allowedTerm.indexOf(parsedExp[1]) !== -1)
         );
-        if (masterPatternIndex !== -1) next();
+        if (masterPatternIndex !== -1) return next();
         return res.json({ code: 403100, message: "User not authorized" });
       } catch (error) {
         console.log(error);
