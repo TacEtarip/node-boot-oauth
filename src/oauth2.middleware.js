@@ -633,20 +633,38 @@ class OauthBoot {
             .select(
               "OAUTH2_Users.username",
               "OAUTH2_Users.id",
-              "OAUTH2_SubjectRole.name"
+              "OAUTH2_Subjects.name"
             )
             .join(
               "OAUTH2_Subjects",
               `OAUTH2_Users.subject_id`,
               "OAUTH2_Subjects.id"
+            )
+            .join(
+              "OAUTH2_SubjectRole",
+              `OAUTH2_Users.subject_id`,
+              "OAUTH2_SubjectRole.subject_id"
+            )
+            .join(
+              "OAUTH2_RoleOption",
+              `OAUTH2_RoleOption.roles_id`,
+              "OAUTH2_SubjectRole.roles_id"
+            )
+            .join(
+              "OAUTH2_Options",
+              `OAUTH2_Options.id`,
+              "OAUTH2_RoleOption.options_id"
+            )
+            .join(
+              "OAUTH2_ApplicationPart",
+              `OAUTH2_ApplicationPart.id`,
+              "OAUTH2_Options.applicationPart_id"
             );
-          return res
-            .status(201)
-            .json({
-              code: 200000,
-              message: "Select completed",
-              content: users,
-            });
+          return res.status(200).json({
+            code: 200000,
+            message: "Select completed",
+            content: users,
+          });
         } catch (error) {
           console.log(error);
           return res.status(500).json({
