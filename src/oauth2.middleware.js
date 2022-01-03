@@ -727,10 +727,7 @@ class OauthBoot {
   guard() {
     return async (req, res, next) => {
       try {
-        console.log(req.path);
-        console.log("user", res.locals.user);
         const exp = this.expressSecured.get(req.path);
-        console.log("exp", exp);
         if (exp === ":") return next();
         const parsedExp = exp.split(":");
         if (parsedExp.length !== 2) {
@@ -770,32 +767,22 @@ class OauthBoot {
             "OAUTH2_Options.applicationPart_id"
           )
           .where(`${subjectTableToSearch}.id`, user.id);
-        console.log(userAllowed);
         const patterns = this.joinSearch(
           userAllowed,
           "applicationPart",
           "allowedTerm"
         );
-        console.log(patterns);
-        // const userWithPatters = this.joinSearch(
-        //   userAllowed,
-        //   "id",
-        //   "allowedPatterns"
-        // )[0];
-        // const masterPatternIndex = userWithPatters.allowedPatterns.findIndexOf(
-        //   (ap) => ap === "*:*" || ap === exp
-        // );
         const masterPatternIndex = patterns.findIndex(
           (p) =>
             (p.applicationPart === "OAUTH2_global" &&
               p.allowedTerm.indexOf("*") !== -1) ||
             (p.applicationPart === parsedExp[0] &&
-              p.allowedTerm.indexOf("*") !== -1)
+              p.allowedTerm.indexOf("*") !== -1) ||
+            (p.applicationPart === parsedExp[0] &&
+              p.allowedTerm.indexOf(parsedExp[1]) !== -1)
         );
-        console.log(masterPatternIndex);
-        // if (masterPatternIndex !== -1) {
-        // }
-        next();
+        if (masterPatternIndex !== -1) next();
+        return res.json({ code: 403100, message: "User not authorized" });
       } catch (error) {
         console.log(error);
         return res.json({ code: 500000, message: error.message });
