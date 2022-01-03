@@ -357,6 +357,18 @@ class OauthBoot {
               applications_id: applicationId[0],
               partIdentifier: "OAUTH2_client",
             },
+            {
+              applications_id: applicationId[0],
+              partIdentifier: "OAUTH2_application",
+            },
+            {
+              applications_id: applicationId[0],
+              partIdentifier: "OAUTH2_role",
+            },
+            {
+              applications_id: applicationId[0],
+              partIdentifier: "OAUTH2_option",
+            },
           ];
 
           for (const part of partsToInsert) {
@@ -411,6 +423,66 @@ class OauthBoot {
             },
             {
               applicationPart_id: applicationPartIds[2],
+              allowed: "select",
+            },
+            {
+              applicationPart_id: applicationPartIds[3],
+              allowed: "*",
+            },
+            {
+              applicationPart_id: applicationPartIds[3],
+              allowed: "create",
+            },
+            {
+              applicationPart_id: applicationPartIds[3],
+              allowed: "update",
+            },
+            {
+              applicationPart_id: applicationPartIds[3],
+              allowed: "delete",
+            },
+            {
+              applicationPart_id: applicationPartIds[3],
+              allowed: "select",
+            },
+            {
+              applicationPart_id: applicationPartIds[4],
+              allowed: "*",
+            },
+            {
+              applicationPart_id: applicationPartIds[4],
+              allowed: "create",
+            },
+            {
+              applicationPart_id: applicationPartIds[4],
+              allowed: "update",
+            },
+            {
+              applicationPart_id: applicationPartIds[4],
+              allowed: "delete",
+            },
+            {
+              applicationPart_id: applicationPartIds[4],
+              allowed: "select",
+            },
+            {
+              applicationPart_id: applicationPartIds[5],
+              allowed: "*",
+            },
+            {
+              applicationPart_id: applicationPartIds[5],
+              allowed: "create",
+            },
+            {
+              applicationPart_id: applicationPartIds[5],
+              allowed: "update",
+            },
+            {
+              applicationPart_id: applicationPartIds[5],
+              allowed: "delete",
+            },
+            {
+              applicationPart_id: applicationPartIds[5],
               allowed: "select",
             },
           ];
@@ -508,8 +580,6 @@ class OauthBoot {
     }
   }
 
-  // { defaultValue: null, type: 'int', maxLength: null, nullable: false }
-
   async auditTableColumn(tableName, columnsToMatch) {
     try {
       const columns = await this.knex.table(tableName).columnInfo();
@@ -593,15 +663,19 @@ class OauthBoot {
         username: { type: "string" },
         password: { type: "string" },
         name: { type: "string" },
+        applications_id: { type: "number" },
       }),
       async (req, res) => {
         try {
-          const { username, password, name } = req.body;
+          const { username, password, name, applications_id } = req.body;
           const encryptedPassword = await bcrypt.hash(password, 10);
 
           await this.knex.transaction(async (trx) => {
             try {
-              const firstResult = await trx("OAUTH2_Subjects").insert({ name });
+              const firstResult = await trx("OAUTH2_Subjects").insert({
+                name,
+                applications_id,
+              });
               await trx("OAUTH2_Users").insert({
                 username,
                 password: encryptedPassword,
@@ -623,6 +697,119 @@ class OauthBoot {
       }
     );
 
+    this.expressSecured.obPost(
+      "/role",
+      "OAUTH2_role:create",
+      this.validateBody({
+        identifier: { type: "string" },
+        applications_id: { type: "number" },
+        options: { type: "array" },
+      }),
+      async (req, res) => {
+        try {
+          const { identifier, applications_id, options } = req.body;
+          await this.knex.transaction(async (trx) => {
+            try {
+              const insertResult = await trx("OAUTH2_Roles").insert({
+                identifier,
+                applications_id,
+              });
+              const insertRoleOptions = options.map((opt) => {
+                return { options_id: opt, roles_id: insertResult[0] };
+              });
+              await trx("OAUTH2_RoleOption").insert(insertRoleOptions);
+            } catch (error) {
+              throw new Error(error.message);
+            }
+          });
+          return res.status(201).json({ code: 200000, message: "Role added" });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    this.expressSecured.obPost(
+      "/application",
+      "OAUTH2_application:create",
+      this.validateBody({
+        identifier: { type: "string" },
+      }),
+      async (req, res) => {
+        try {
+          const { identifier } = req.body;
+          await this.knex.table("OAUTH2_Applications").insert({ identifier });
+          return res
+            .status(201)
+            .json({ code: 200000, message: "Application added" });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    this.expressSecured.obPost(
+      "/application/part",
+      "OAUTH2_application:create",
+      this.validateBody({
+        partIdentifier: { type: "string" },
+        applications_id: { type: "number" },
+      }),
+      async (req, res) => {
+        try {
+          const { partIdentifier, applications_id } = req.body;
+          await this.knex.table("OAUTH2_ApplicationPart").insert({
+            partIdentifier,
+            applications_id,
+          });
+          return res
+            .status(201)
+            .json({ code: 200000, message: "Application part added" });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    this.expressSecured.obPost(
+      "/option",
+      "OAUTH2_option:create",
+      this.validateBody({
+        allowed: { type: "string" },
+        applicationPart_id: { type: "number" },
+      }),
+      async (req, res) => {
+        try {
+          const { allowed, applicationPart_id } = req.body;
+          await this.knex.table("OAUTH2_Options").insert({
+            allowed,
+            applicationPart_id,
+          });
+          return res
+            .status(201)
+            .json({ code: 200000, message: "Option added" });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
     this.expressSecured.obGet(
       "/user",
       "OAUTH2_user:select",
@@ -631,8 +818,8 @@ class OauthBoot {
           const users = await this.knex
             .table("OAUTH2_Users")
             .select(
-              "OAUTH2_Users.username",
               "OAUTH2_Users.id",
+              "OAUTH2_Users.username",
               "OAUTH2_Subjects.name",
               "OAUTH2_ApplicationPart.partIdentifier as applicationPart"
             )
@@ -787,7 +974,6 @@ class OauthBoot {
           .table(subjectTableToSearch)
           .select(
             "OAUTH2_Options.allowed as allowedTerm",
-            // "OAUTH2_Users.*",
             "OAUTH2_ApplicationPart.partIdentifier as applicationPart"
           )
           .join(
@@ -849,6 +1035,14 @@ class OauthBoot {
 
       for (const option in validationOptions) {
         switch (validationOptions[option].type) {
+          case "array":
+            if (!Array.isArray(req.body[option])) {
+              return res.status(400).json({
+                code: 400000,
+                message: `Invalid body; ${option} is not an array`,
+              });
+            }
+            break;
           case "string":
             if (
               !(
