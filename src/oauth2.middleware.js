@@ -633,7 +633,8 @@ class OauthBoot {
             .select(
               "OAUTH2_Users.username",
               "OAUTH2_Users.id",
-              "OAUTH2_Subjects.name"
+              "OAUTH2_Subjects.name",
+              "OAUTH2_ApplicationPart.partIdentifier as applicationPart"
             )
             .join(
               "OAUTH2_Subjects",
