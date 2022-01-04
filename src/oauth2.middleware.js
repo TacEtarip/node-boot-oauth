@@ -677,7 +677,7 @@ class OauthBoot {
                 applications_id,
               });
               await trx("OAUTH2_Users").insert({
-                username,
+                username: username.toLowerCase(),
                 password: encryptedPassword,
                 subject_id: firstResult[0],
               });
@@ -881,7 +881,7 @@ class OauthBoot {
               "OAUTH2_Users.subject_id",
               "OAUTH2_Subjects.id"
             )
-            .where("OAUTH2_Users.username", username);
+            .where("OAUTH2_Users.username", username.toLowerCase());
           // const user = this.joinSearch(preUser, "id", "subject_id")[0];
           const correctPassword = await bcrypt.compare(
             password,
