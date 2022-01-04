@@ -875,14 +875,14 @@ class OauthBoot {
           const { username, password } = req.body;
           const preUser = await this.knex
             .table("OAUTH2_Users")
-            .select("OAUTH2_SubjectRole.id as subjectRoleId", "OAUTH2_Users.*")
+            .select("OAUTH2_Subjects.name", "OAUTH2_Users.*")
             .join(
-              "OAUTH2_SubjectRole",
+              "OAUTH2_Subjects",
               "OAUTH2_Users.subject_id",
-              "OAUTH2_SubjectRole.subject_id"
+              "OAUTH2_Subjects.id"
             )
             .where("OAUTH2_Users.username", username);
-          const user = this.joinSearch(preUser, "id", "subject_id")[0];
+          // const user = this.joinSearch(preUser, "id", "subject_id")[0];
           const correctPassword = await bcrypt.compare(password, user.password);
           if (!correctPassword) {
             return res.status(401).json({
@@ -907,7 +907,7 @@ class OauthBoot {
           return res.json({
             message: `User ${username} logged in`,
             code: 200000,
-            content: { jwt_token: token },
+            content: { jwt_token: token, username, name: preUser[0].name },
           });
         } catch (error) {
           console.log(error);
@@ -958,6 +958,7 @@ class OauthBoot {
   guard() {
     return async (req, res, next) => {
       try {
+        console.log("here undefined");
         const exp = this.expressSecured.get(req.path);
         if (exp === ":") return next();
         const parsedExp = exp.split(":");
