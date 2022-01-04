@@ -894,8 +894,8 @@ class OauthBoot {
             {
               data: {
                 subjectType: "user",
-                id: user.id,
-                username: user.username,
+                id: preUser[0].id,
+                username: preUser[0].username,
               },
             },
             this.jwtSecret,
