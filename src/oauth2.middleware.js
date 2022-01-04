@@ -883,7 +883,10 @@ class OauthBoot {
             )
             .where("OAUTH2_Users.username", username);
           // const user = this.joinSearch(preUser, "id", "subject_id")[0];
-          const correctPassword = await bcrypt.compare(password, user.password);
+          const correctPassword = await bcrypt.compare(
+            password,
+            preUser[0].password
+          );
           if (!correctPassword) {
             return res.status(401).json({
               code: 400001,
@@ -907,7 +910,12 @@ class OauthBoot {
           return res.json({
             message: `User ${username} logged in`,
             code: 200000,
-            content: { jwt_token: token, username, name: preUser[0].name },
+            content: {
+              jwt_token: token,
+              username,
+              name: preUser[0].name,
+              userId: preUser[0].id,
+            },
           });
         } catch (error) {
           console.log(error);
