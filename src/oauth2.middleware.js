@@ -885,6 +885,8 @@ class OauthBoot {
             .offset(offset)
             .orderBy("id", order);
 
+          console.log(users);
+
           const parsedUsers = this.parseUserSearch(users);
           return res.status(200).json({
             code: 200000,
