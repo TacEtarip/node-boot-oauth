@@ -875,8 +875,8 @@ class OauthBoot {
               `OAUTH2_ApplicationPart.id`,
               "OAUTH2_Options.applicationPart_id"
             )
-            .limit(offset)
-            .offset(itemsPerPage);
+            .limit(itemsPerPage)
+            .offset(offset);
 
           const parsedUsers = this.parseUserSearch(users);
           return res.status(200).json({
