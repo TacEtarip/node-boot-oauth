@@ -1121,7 +1121,8 @@ class OauthBoot {
     const newArray = [];
     for (let index = 0; index < usersBaseArray.length; index++) {
       if (
-        usersBaseArray[index].id !== usersBaseArray[index - 1].id ||
+        (usersBaseArray[index - 1] &&
+          usersBaseArray[index].id !== usersBaseArray[index - 1].id) ||
         index === 0
       ) {
         const userObject = {
