@@ -853,10 +853,12 @@ class OauthBoot {
               `OAUTH2_ApplicationPart.id`,
               "OAUTH2_Options.applicationPart_id"
             );
+
+          const parsedUsers = this.parseUserSearch(users);
           return res.status(200).json({
             code: 200000,
             message: "Select completed",
-            content: users,
+            content: parsedUsers,
           });
         } catch (error) {
           console.log(error);
