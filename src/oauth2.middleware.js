@@ -814,6 +814,7 @@ class OauthBoot {
         try {
           let itemsPerPage = 5;
           let pageIndex = 0;
+          let order = "desc";
 
           if (
             req.query["itemsPerPage"] &&
@@ -824,6 +825,13 @@ class OauthBoot {
 
           if (req.query["pageIndex"] && parseInt(req.query["pageIndex"]) >= 0) {
             pageIndex = parseInt(req.query["pageIndex"]);
+          }
+
+          if (
+            req.query["order"] &&
+            (req.query["order"] === "desc" || req.query["order"] === "asc")
+          ) {
+            order = req.query["order"];
           }
 
           const offset = itemsPerPage * pageIndex;
@@ -876,7 +884,8 @@ class OauthBoot {
               "OAUTH2_Options.applicationPart_id"
             )
             .limit(itemsPerPage)
-            .offset(offset);
+            .offset(offset)
+            .orderBy("id", order);
 
           const parsedUsers = this.parseUserSearch(users);
           return res.status(200).json({
