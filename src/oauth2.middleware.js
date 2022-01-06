@@ -664,14 +664,13 @@ class OauthBoot {
       }),
       async (req, res) => {
         try {
-          const { username, password, name, applications_id } = req.body;
+          const { username, password, name } = req.body;
           const encryptedPassword = await bcrypt.hash(password, 10);
 
           await this.knex.transaction(async (trx) => {
             try {
               const firstResult = await trx("OAUTH2_Subjects").insert({
                 name,
-                applications_id,
               });
               await trx("OAUTH2_Users").insert({
                 username: username.toLowerCase(),
