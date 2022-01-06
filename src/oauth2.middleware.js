@@ -660,7 +660,6 @@ class OauthBoot {
         username: { type: "string" },
         password: { type: "string" },
         name: { type: "string" },
-        applications_id: { type: "number" },
       }),
       async (req, res) => {
         try {
