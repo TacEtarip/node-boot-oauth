@@ -279,8 +279,6 @@ class OauthBoot {
       await this.knex.schema.createTable("OAUTH2_Subjects", (table) => {
         table.increments("id");
         table.string("name", 45).notNullable();
-        table.integer("applications_id").unsigned().notNullable();
-        table.foreign("applications_id").references("OAUTH2_Applications.id");
         table.timestamps(true, true);
       });
 
@@ -503,7 +501,6 @@ class OauthBoot {
 
           const subjectId = await trx("OAUTH2_Subjects").insert({
             name: "Admin",
-            applications_id: applicationId[0],
           });
 
           await trx("OAUTH2_SubjectRole").insert({
@@ -821,7 +818,8 @@ class OauthBoot {
               "OAUTH2_Users.id",
               "OAUTH2_Users.username",
               "OAUTH2_Subjects.name",
-              "OAUTH2_ApplicationPart.partIdentifier as applicationPart"
+              "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
+              "OAUTH2_Options.allowed"
             )
             .join(
               "OAUTH2_Subjects",
