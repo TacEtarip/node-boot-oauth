@@ -819,7 +819,9 @@ class OauthBoot {
               "OAUTH2_Users.username",
               "OAUTH2_Subjects.name",
               "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
-              "OAUTH2_Options.allowed"
+              "OAUTH2_Options.allowed",
+              "OAUTH2_Roles.id as roleId",
+              "OAUTH2_Roles.identifier as roleIdentifier"
             )
             .join(
               "OAUTH2_Subjects",
@@ -830,6 +832,11 @@ class OauthBoot {
               "OAUTH2_SubjectRole",
               `OAUTH2_Users.subject_id`,
               "OAUTH2_SubjectRole.subject_id"
+            )
+            .join(
+              "OAUTH2_Roles",
+              `OAUTH2_Roles.id`,
+              "OAUTH2_SubjectRole.roles_id"
             )
             .join(
               "OAUTH2_RoleOption",
@@ -1102,6 +1109,66 @@ class OauthBoot {
         for (const similarField of similarFields) {
           const temporalFieldValue = baseSearch[index][similarField];
           newArray[newArray.length - 1][similarField].push(temporalFieldValue);
+        }
+      }
+    }
+    return newArray;
+  };
+
+  parseUserSearch = (usersBaseArray) => {
+    const newArray = [];
+    for (let index = 0; index < usersBaseArray.length; index++) {
+      if (baseSearch[index].id !== baseSearch[index - 1].id || index === 0) {
+        const userObject = {
+          id: usersBaseArray[index].id,
+          name: usersBaseArray[index].name,
+          username: usersBaseArray[index].username,
+          roles: [
+            {
+              id: usersBaseArray[index].roleId,
+              identifier: usersBaseArray[index].roleIdentifier,
+              options: [
+                {
+                  applicationPartName: usersBaseArray[index].applicationPart,
+                  allowed: [usersBaseArray[index].allowed],
+                },
+              ],
+            },
+          ],
+        };
+        newArray.push(userObject);
+      } else {
+        const indexRole = newArray[index - 1].roles.findIndex(
+          (r) => r.id === usersBaseArray[index].roleId
+        );
+        if (indexRole === -1) {
+          newArray[index - 1].roles.push({
+            id: usersBaseArray[index].roleId,
+            identifier: usersBaseArray[index].roleIdentifier,
+            options: [
+              {
+                applicationPartName: usersBaseArray[index].applicationPart,
+                allowed: [usersBaseArray[index].allowed],
+              },
+            ],
+          });
+        } else {
+          const indexOption = newArray[index - 1].roles[
+            indexRole
+          ].options.findIndex(
+            (o) =>
+              o.applicationPartName === usersBaseArray[index].applicationPart
+          );
+          if (indexOption === -1) {
+            newArray[index - 1].roles[indexRole].options.push({
+              applicationPartName: usersBaseArray[index].applicationPart,
+              allowed: [usersBaseArray[index].allowed],
+            });
+          } else {
+            newArray[index - 1].roles[indexRole].options[
+              indexOption
+            ].allowed.push(usersBaseArray[index].allowed);
+          }
         }
       }
     }
