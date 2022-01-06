@@ -812,6 +812,28 @@ class OauthBoot {
       "OAUTH2_user:select",
       async (req, res) => {
         try {
+          let itemsPerPage = 5;
+          let pageIndex = 0;
+
+          if (
+            req.query["itemsPerPage"] &&
+            parseInt(req.query["itemsPerPage"]) >= 1
+          ) {
+            itemsPerPage = parseInt(req.query["itemsPerPage"]);
+          }
+
+          if (req.query["pageIndex"] && parseInt(req.query["pageIndex"]) >= 0) {
+            pageIndex = parseInt(req.query["pageIndex"]);
+          }
+
+          const offset = itemsPerPage * pageIndex;
+
+          const userTotalCount = (
+            await this.knex.table("OAUTH2_Users").count()
+          )[0]["count(*)"];
+
+          const totalPages = Math.ceil(userTotalCount / itemsPerPage);
+
           const users = await this.knex
             .table("OAUTH2_Users")
             .select(
@@ -852,13 +874,21 @@ class OauthBoot {
               "OAUTH2_ApplicationPart",
               `OAUTH2_ApplicationPart.id`,
               "OAUTH2_Options.applicationPart_id"
-            );
+            )
+            .limit(offset)
+            .offset(itemsPerPage);
 
           const parsedUsers = this.parseUserSearch(users);
           return res.status(200).json({
             code: 200000,
             message: "Select completed",
-            content: parsedUsers,
+            content: {
+              items: parsedUsers,
+              pageIndex,
+              itemsPerPage,
+              totalItems: userTotalCount,
+              totalPages,
+            },
           });
         } catch (error) {
           console.log(error);
