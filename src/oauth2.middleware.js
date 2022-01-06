@@ -1120,7 +1120,10 @@ class OauthBoot {
   parseUserSearch = (usersBaseArray) => {
     const newArray = [];
     for (let index = 0; index < usersBaseArray.length; index++) {
-      if (baseSearch[index].id !== baseSearch[index - 1].id || index === 0) {
+      if (
+        usersBaseArray[index].id !== usersBaseArray[index - 1].id ||
+        index === 0
+      ) {
         const userObject = {
           id: usersBaseArray[index].id,
           name: usersBaseArray[index].name,
