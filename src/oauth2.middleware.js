@@ -1084,6 +1084,7 @@ class OauthBoot {
     return async (req, res, next) => {
       try {
         console.log("here undefined");
+        return res.json({ code: 500000, message: "xx" });
         const exp = this.expressSecured.get(req.path);
         if (exp === ":") return next();
         const parsedExp = exp.split(":");
@@ -1129,8 +1130,6 @@ class OauthBoot {
           "applicationPart",
           "allowedTerm"
         );
-        console.log(parsedExp);
-        console.log(patterns);
         const masterPatternIndex = patterns.findIndex(
           (p) =>
             (p.applicationPart === "OAUTH2_global" &&
@@ -1144,7 +1143,7 @@ class OauthBoot {
         if (masterPatternIndex !== -1) return next();
         return res.json({ code: 403100, message: "User not authorized" });
       } catch (error) {
-        console.log(error);
+        console.log("thiserror", error);
         return res.json({ code: 500000, message: error.message });
       }
     };
