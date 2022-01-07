@@ -881,7 +881,6 @@ class OauthBoot {
               `OAUTH2_ApplicationPart.id`,
               "OAUTH2_Options.applicationPart_id"
             )
-            .limit(itemsPerPage)
             .offset(offset)
             .orderBy("id", order);
 
