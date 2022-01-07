@@ -267,12 +267,14 @@ class OauthBoot {
         table.string("partIdentifier", 100).notNullable();
         table.integer("applications_id").unsigned().notNullable();
         table.foreign("applications_id").references("OAUTH2_Applications.id");
+        table.boolean("deleted").defaultTo(false);
         table.timestamps(true, true);
       });
 
       await this.knex.schema.createTable("OAUTH2_Subjects", (table) => {
         table.increments("id");
         table.string("name", 45).notNullable();
+        table.boolean("deleted").defaultTo(false);
         table.timestamps(true, true);
       });
 
@@ -282,6 +284,7 @@ class OauthBoot {
         table.foreign("subject_id").references("OAUTH2_Subjects.id");
         table.string("username", 45).notNullable().unique();
         table.string("password", 75).notNullable();
+        table.boolean("deleted").defaultTo(false);
         table.timestamps(true, true);
       });
 
@@ -291,6 +294,7 @@ class OauthBoot {
         table.foreign("subject_id").references("OAUTH2_Subjects.id");
         table.string("identifier", 100).notNullable().unique();
         table.string("access_token", 255).notNullable();
+        table.boolean("deleted").defaultTo(false);
         table.timestamps(true, true);
       });
 
@@ -301,12 +305,14 @@ class OauthBoot {
         table
           .foreign("applicationPart_id")
           .references("OAUTH2_ApplicationPart.id");
+        table.boolean("deleted").defaultTo(false);
         table.timestamps(true, true);
       });
 
       await this.knex.schema.createTable("OAUTH2_Roles", (table) => {
         table.increments("id");
         table.string("identifier", 100).notNullable().unique();
+        table.boolean("deleted").defaultTo(false);
         table.timestamps(true, true);
       });
 
