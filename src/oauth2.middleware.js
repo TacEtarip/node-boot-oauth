@@ -1084,7 +1084,6 @@ class OauthBoot {
     return async (req, res, next) => {
       try {
         console.log("here undefined");
-        return res.json({ code: 500000, message: "xx" });
         const exp = this.expressSecured.get(req.path);
         if (exp === ":") return next();
         const parsedExp = exp.split(":");
