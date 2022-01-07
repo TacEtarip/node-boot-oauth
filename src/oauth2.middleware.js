@@ -322,7 +322,7 @@ class OauthBoot {
         table.foreign("subject_id").references("OAUTH2_Subjects.id");
         table.integer("roles_id").unsigned().notNullable();
         table.foreign("roles_id").references("OAUTH2_Roles.id");
-        table.unique(["id", "subject_id", "roles_id"]);
+        table.unique(["subject_id", "roles_id"]);
       });
 
       await this.knex.schema.createTable("OAUTH2_RoleOption", (table) => {
@@ -331,7 +331,7 @@ class OauthBoot {
         table.foreign("options_id").references("OAUTH2_Options.id");
         table.integer("roles_id").unsigned().notNullable();
         table.foreign("roles_id").references("OAUTH2_Roles.id");
-        table.unique(["id", "options_id", "roles_id"]);
+        table.unique(["options_id", "roles_id"]);
       });
 
       await this.knex.transaction(async (trx) => {
@@ -1087,6 +1087,7 @@ class OauthBoot {
         const exp = this.expressSecured.get(req.path);
         if (exp === ":") return next();
         const parsedExp = exp.split(":");
+        console.log(parsedExp);
         if (parsedExp.length !== 2) {
           return res.json({ code: 403200, message: "Bad guard input" });
         }
