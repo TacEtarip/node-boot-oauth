@@ -125,12 +125,6 @@ class OauthBoot {
             maxLength: 100,
             nullable: false,
           },
-          applications_id: {
-            defaultValue: null,
-            type: "int",
-            maxLength: null,
-            nullable: false,
-          },
         },
         OAUTH2_Applications: {
           id: {
@@ -313,8 +307,6 @@ class OauthBoot {
       await this.knex.schema.createTable("OAUTH2_Roles", (table) => {
         table.increments("id");
         table.string("identifier", 100).notNullable().unique();
-        table.integer("applications_id").unsigned().notNullable();
-        table.foreign("applications_id").references("OAUTH2_Applications.id");
         table.timestamps(true, true);
       });
 
@@ -488,7 +480,6 @@ class OauthBoot {
           const optionId = await trx("OAUTH2_Options").insert(oauthInsert);
 
           const roleId = await trx("OAUTH2_Roles").insert({
-            applications_id: applicationId[0],
             identifier: "admin",
           });
 
@@ -881,6 +872,7 @@ class OauthBoot {
               `OAUTH2_ApplicationPart.id`,
               "OAUTH2_Options.applicationPart_id"
             )
+            .limit(itemsPerPage)
             .offset(offset)
             .orderBy("id", order);
 
@@ -897,6 +889,29 @@ class OauthBoot {
               totalItems: userTotalCount,
               totalPages,
             },
+          });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    this.expressSecured.obGet(
+      "/auth/role",
+      "OAUTH2_role:select",
+      async (req, res) => {
+        try {
+          const roles = await this.knex
+            .table("OAUTH2_Roles")
+            .select("OAUTH2_Roles.id", "OAUTH2_Roles.identifier");
+          return res.status(200).json({
+            code: 200000,
+            message: "Select completed",
+            content: roles,
           });
         } catch (error) {
           console.log(error);
