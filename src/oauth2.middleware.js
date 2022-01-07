@@ -650,11 +650,12 @@ class OauthBoot {
       this.validateBody({
         username: { type: "string" },
         password: { type: "string" },
+        roles: { type: "array" },
         name: { type: "string" },
       }),
       async (req, res) => {
         try {
-          const { username, password, name } = req.body;
+          const { username, password, name, roles } = req.body;
           const encryptedPassword = await bcrypt.hash(password, 10);
 
           await this.knex.transaction(async (trx) => {
@@ -667,6 +668,12 @@ class OauthBoot {
                 password: encryptedPassword,
                 subject_id: firstResult[0],
               });
+
+              const subjectRolesToInsert = roles.map((r) => {
+                return { subject_id: firstResult[0], roles_id: r.id };
+              });
+
+              await trx("OAUTH2_SubjectRole").insert(subjectRolesToInsert);
             } catch (error) {
               throw new Error(error.message);
             }
