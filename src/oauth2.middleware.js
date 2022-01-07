@@ -885,6 +885,7 @@ class OauthBoot {
               `OAUTH2_ApplicationPart.id`,
               "OAUTH2_Options.applicationPart_id"
             )
+            .where("OAUTH2_Users.deleted", false)
             .limit(itemsPerPage)
             .offset(offset)
             .orderBy("id", order);
@@ -920,7 +921,8 @@ class OauthBoot {
         try {
           const roles = await this.knex
             .table("OAUTH2_Roles")
-            .select("OAUTH2_Roles.id", "OAUTH2_Roles.identifier");
+            .select("OAUTH2_Roles.id", "OAUTH2_Roles.identifier")
+            .where({ deleted: false });
           return res.status(200).json({
             code: 200000,
             message: "Select completed",
