@@ -322,6 +322,7 @@ class OauthBoot {
         table.foreign("subject_id").references("OAUTH2_Subjects.id");
         table.integer("roles_id").unsigned().notNullable();
         table.foreign("roles_id").references("OAUTH2_Roles.id");
+        table.unique(["id", "subject_id", "roles_id"]);
       });
 
       await this.knex.schema.createTable("OAUTH2_RoleOption", (table) => {
@@ -330,6 +331,7 @@ class OauthBoot {
         table.foreign("options_id").references("OAUTH2_Options.id");
         table.integer("roles_id").unsigned().notNullable();
         table.foreign("roles_id").references("OAUTH2_Roles.id");
+        table.unique(["id", "options_id", "roles_id"]);
       });
 
       await this.knex.transaction(async (trx) => {
@@ -612,7 +614,7 @@ class OauthBoot {
       return expressApp.get(path, ...handler);
     };
 
-    expressApp.put = (path, allowed, ...handler) => {
+    expressApp.obPut = (path, allowed, ...handler) => {
       expressApp.set(path, allowed);
       return expressApp.put(path, ...handler);
     };
@@ -650,6 +652,7 @@ class OauthBoot {
   }
 
   addEndPoints() {
+    // Create User
     this.expressSecured.obPost(
       "/auth/user",
       "OAUTH2_user:create",
@@ -696,6 +699,7 @@ class OauthBoot {
       }
     );
 
+    // Create Role
     this.expressSecured.obPost(
       "/auth/role",
       "OAUTH2_role:create",
@@ -732,6 +736,7 @@ class OauthBoot {
       }
     );
 
+    // Create Application
     this.expressSecured.obPost(
       "/auth/application",
       "OAUTH2_application:create",
@@ -755,6 +760,7 @@ class OauthBoot {
       }
     );
 
+    // Create Application Part
     this.expressSecured.obPost(
       "/application/part",
       "OAUTH2_application:create",
@@ -782,6 +788,7 @@ class OauthBoot {
       }
     );
 
+    // Create Option
     this.expressSecured.obPost(
       "/auth/option",
       "OAUTH2_option:create",
@@ -809,6 +816,7 @@ class OauthBoot {
       }
     );
 
+    // Get Users
     this.expressSecured.obGet(
       "/auth/user",
       "OAUTH2_user:select",
@@ -914,6 +922,39 @@ class OauthBoot {
       }
     );
 
+    this.expressSecured.obPut(
+      "/auth/user/:id/role",
+      "OAUTH2_user:update",
+      this.validateBody({
+        roles: { type: "array" },
+      }),
+      async (req, res) => {
+        try {
+          const { roles } = req.body;
+          const userId = parseInt(req.params.id);
+
+          const subjectRolesToInsert = roles.map((r) => {
+            return { subject_id: userId, roles_id: r.id };
+          });
+
+          await this.knex
+            .table("OAUTH2_SubjectRole")
+            .insert(subjectRolesToInsert);
+
+          return res
+            .status(201)
+            .json({ code: 200000, message: "User roles added" });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    // Select Roles
     this.expressSecured.obGet(
       "/auth/role",
       "OAUTH2_role:select",
@@ -938,6 +979,7 @@ class OauthBoot {
       }
     );
 
+    // LOGIN
     this.expressSecured.obPost(
       "/auth/login",
       ":",
