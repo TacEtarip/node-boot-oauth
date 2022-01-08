@@ -937,9 +937,11 @@ class OauthBoot {
             return { subject_id: userId, roles_id: r.id };
           });
 
-          await this.knex
+          const result = await this.knex
             .table("OAUTH2_SubjectRole")
             .insert(subjectRolesToInsert);
+
+          console.log(result);
 
           return res
             .status(201)
