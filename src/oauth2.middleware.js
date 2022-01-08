@@ -923,7 +923,7 @@ class OauthBoot {
     );
 
     this.expressSecured.obPut(
-      "/auth/user/:id/role",
+      "/auth/user/role",
       "OAUTH2_user:update",
       this.validateBody({
         roles: { type: "array" },
@@ -931,7 +931,7 @@ class OauthBoot {
       async (req, res) => {
         try {
           const { roles } = req.body;
-          const userId = parseInt(req.params.id);
+          const userId = parseInt(req.query["id"]);
 
           const subjectRolesToInsert = roles.map((r) => {
             return { subject_id: userId, roles_id: r.id };
@@ -1085,9 +1085,8 @@ class OauthBoot {
       try {
         console.log("here undefined");
         const exp = this.expressSecured.get(req.path);
-        if (exp === ":") return next();
+        if (exp === ":" || exp === undefined) return next();
         const parsedExp = exp.split(":");
-        console.log(parsedExp);
         if (parsedExp.length !== 2) {
           return res.json({ code: 403200, message: "Bad guard input" });
         }
@@ -1143,7 +1142,7 @@ class OauthBoot {
         return res.json({ code: 403100, message: "User not authorized" });
       } catch (error) {
         console.log("thiserror", error);
-        return res.json({ code: 500000, message: error.message });
+        return res.status(500).json({ code: 500000, message: error.message });
       }
     };
   }
