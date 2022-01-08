@@ -948,6 +948,12 @@ class OauthBoot {
             .json({ code: 200000, message: "User roles added" });
         } catch (error) {
           console.log(error);
+          if (error.code && error.code === "ER_DUP_ENTRY") {
+            return res.status(500).json({
+              code: 500000,
+              message: "User already has those roles",
+            });
+          }
           return res.status(500).json({
             code: 500000,
             message: error.message,
