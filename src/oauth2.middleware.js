@@ -1452,7 +1452,7 @@ class OauthBoot {
           const parts = await this.knex
             .table("OAUTH2_ApplicationPart")
             .select(
-              "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
+              "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
               "OAUTH2_Options.allowed"
             )
             .join(
@@ -1464,7 +1464,7 @@ class OauthBoot {
 
           const parsedParts = this.joinSearch(
             parts,
-            "applicationPart",
+            "applicationPartName",
             "allowed"
           );
 
