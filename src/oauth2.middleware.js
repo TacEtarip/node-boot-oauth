@@ -1462,6 +1462,7 @@ class OauthBoot {
             )
             .where("OAUTH2_ApplicationPart.deleted", false);
 
+          console.log("parts", parts);
           const parsedParts = this.joinSearch(
             parts,
             "applicationPartName",
