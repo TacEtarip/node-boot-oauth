@@ -1420,6 +1420,8 @@ class OauthBoot {
 
           const parsedRoles = this.parseRoleSearch(roles);
 
+          console.log("parsedRoles", parsedRoles);
+
           return res.status(200).json({
             code: 200000,
             message: "Select completed",
@@ -1776,6 +1778,7 @@ class OauthBoot {
             },
           ],
         };
+        console.log("roleObject", roleObject);
         newArray.push(roleObject);
       } else {
         const indexOption = newArray[index - 1].options.findIndex(
