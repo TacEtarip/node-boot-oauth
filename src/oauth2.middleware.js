@@ -516,7 +516,6 @@ class OauthBoot {
               data: {
                 subjectType: "client",
                 identifier: "admin",
-                id: 1,
               },
             },
             this.jwtSecret
@@ -689,6 +688,68 @@ class OauthBoot {
           });
 
           return res.status(201).json({ code: 200000, message: "User added" });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    // Create Client
+    this.expressSecured.obPost(
+      "/auth/client",
+      "OAUTH2_client:create",
+      this.validateBody({
+        identifier: { type: "string" },
+        roles: { type: "array" },
+        name: { type: "string" },
+      }),
+      async (req, res) => {
+        try {
+          const { identifier, name, roles } = req.body;
+
+          const access_token = jwt.sign(
+            {
+              data: {
+                subjectType: "client",
+                identifier: identifier,
+              },
+            },
+            this.jwtSecret
+          );
+
+          const encryptedAccessToken = await bcrypt.hash(access_token, 10);
+
+          await this.knex.transaction(async (trx) => {
+            try {
+              const firstResult = await trx("OAUTH2_Subjects").insert({
+                name,
+              });
+
+              await trx("OAUTH2_Clients").insert({
+                identifier: identifier.toLowerCase(),
+                access_token: encryptedAccessToken,
+                subject_id: firstResult[0],
+              });
+
+              const subjectRolesToInsert = roles.map((r) => {
+                return { subject_id: firstResult[0], roles_id: r.id };
+              });
+
+              await trx("OAUTH2_SubjectRole").insert(subjectRolesToInsert);
+            } catch (error) {
+              throw new Error(error.message);
+            }
+          });
+
+          return res.status(201).json({
+            code: 200000,
+            message: "Client added",
+            content: { access_token },
+          });
         } catch (error) {
           console.log(error);
           return res.status(500).json({
@@ -1225,7 +1286,6 @@ class OauthBoot {
             {
               data: {
                 subjectType: "user",
-                id: preUser[0].id,
                 username: preUser[0].username,
               },
             },
@@ -1294,7 +1354,6 @@ class OauthBoot {
   guard() {
     return async (req, res, next) => {
       try {
-        console.log("here undefined");
         const exp = this.expressSecured.get(req.path);
         if (exp === ":" || exp === undefined) return next();
         const parsedExp = exp.split(":");
@@ -1307,6 +1366,10 @@ class OauthBoot {
         }
         const subjectTableToSearch =
           user.subjectType === "user" ? "OAUTH2_Users" : "OAUTH2_Clients";
+
+        const userNameOrIdentifier =
+          user.subjectType === "user" ? "username" : "identifier";
+
         const userAllowed = await this.knex
           .table(subjectTableToSearch)
           .select(
@@ -1333,13 +1396,16 @@ class OauthBoot {
             `OAUTH2_ApplicationPart.id`,
             "OAUTH2_Options.applicationPart_id"
           )
-          .where(`${subjectTableToSearch}.id`, user.id);
+          .where(
+            `${subjectTableToSearch}.${userNameOrIdentifier}`,
+            user[userNameOrIdentifier]
+          );
         const patterns = this.joinSearch(
           userAllowed,
           "applicationPart",
           "allowedTerm"
         );
-        const masterPatternIndex = patterns.findIndex(
+        const patternIndex = patterns.findIndex(
           (p) =>
             (p.applicationPart === "OAUTH2_global" &&
               p.allowedTerm.indexOf("*") !== -1) ||
@@ -1348,8 +1414,7 @@ class OauthBoot {
             (p.applicationPart === parsedExp[0] &&
               p.allowedTerm.indexOf(parsedExp[1]) !== -1)
         );
-        console.log(masterPatternIndex);
-        if (masterPatternIndex !== -1) return next();
+        if (patternIndex !== -1) return next();
         return res.json({ code: 403100, message: "User not authorized" });
       } catch (error) {
         console.log("thiserror", error);
