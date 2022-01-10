@@ -1458,7 +1458,7 @@ class OauthBoot {
             .join(
               "OAUTH2_Options",
               `OAUTH2_Options.id`,
-              "OAUTH2_RoleOption.options_id"
+              "OAUTH2_ApplicationPart.id"
             )
             .where("OAUTH2_ApplicationPart.deleted", false);
 
