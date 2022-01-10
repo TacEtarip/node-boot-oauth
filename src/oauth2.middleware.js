@@ -1770,7 +1770,7 @@ class OauthBoot {
       ) {
         const roleObject = {
           id: rolesBaseArray[index].id,
-          identifier: rolesBaseArray[index].subjectId,
+          identifier: rolesBaseArray[index].identifier,
           options: [
             {
               applicationPartName: rolesBaseArray[index].applicationPart,
