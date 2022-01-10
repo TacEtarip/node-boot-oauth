@@ -922,6 +922,7 @@ class OauthBoot {
       }
     );
 
+    // Update user roles
     this.expressSecured.obPut(
       "/auth/user/role",
       "OAUTH2_user:update",
@@ -941,8 +942,6 @@ class OauthBoot {
             .table("OAUTH2_SubjectRole")
             .insert(subjectRolesToInsert);
 
-          console.log(result);
-
           return res
             .status(201)
             .json({ code: 200000, message: "User roles added" });
@@ -954,6 +953,42 @@ class OauthBoot {
               message: "User already has those roles",
             });
           }
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    // Delete user
+    this.expressSecured.obDelete(
+      "/auth/user",
+      "OAUTH2_user:delete",
+      async (req, res) => {
+        try {
+          const userId = req.query["id"];
+          if (!userId) {
+            return res.status(400).json({
+              code: 400001,
+              message: "User id is required",
+            });
+          }
+          if (isNaN(userId)) {
+            return res.status(400).json({
+              code: 400002,
+              message: "User id is not a number",
+            });
+          }
+          const result = await this.knex
+            .table("OAUTH2_Users")
+            .where({ id: userId })
+            .update("deleted", true);
+
+          console.log(result);
+
+          return res.json({ code: 200000, message: "User deleted" });
+        } catch (error) {
           return res.status(500).json({
             code: 500000,
             message: error.message,
