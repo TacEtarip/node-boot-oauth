@@ -214,6 +214,7 @@ class OauthBoot {
         }
       }
 
+      // TODO: PARAMETRIZE DROP TABLE
       if (falseCount > 0) {
         console.log("Tables will be created from 0");
         await this.createTables();
@@ -1418,7 +1419,7 @@ class OauthBoot {
             .where("OAUTH2_Roles.deleted", false)
             .limit(itemsPerPage)
             .offset(offset)
-            .orderBy("id", order);
+            .orderBy("OAUTH2_Roles.id", order);
 
           console.log("roles", roles);
 
