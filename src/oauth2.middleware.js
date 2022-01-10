@@ -1157,13 +1157,13 @@ class OauthBoot {
 
           return res
             .status(201)
-            .json({ code: 200000, message: "User roles added" });
+            .json({ code: 200000, message: "Client roles added" });
         } catch (error) {
           console.log(error);
           if (error.code && error.code === "ER_DUP_ENTRY") {
             return res.status(500).json({
               code: 500000,
-              message: "User already has those roles",
+              message: "Client already has those roles",
             });
           }
           return res.status(500).json({
@@ -1289,7 +1289,46 @@ class OauthBoot {
             .where({ id: subjectId })
             .update({ name });
 
-          return res.json({ code: 200000, message: "User deleted" });
+          return res.json({ code: 200000, message: "User updated" });
+        } catch (error) {
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    // Update client
+    this.expressSecured.obPut(
+      "/auth/client",
+      "OAUTH2_client:update",
+      this.validateBody({
+        name: { type: "string" },
+      }),
+      async (req, res) => {
+        try {
+          const { name } = req.body;
+          const subjectId = req.query["subjectId"];
+          if (!subjectId) {
+            return res.status(400).json({
+              code: 400001,
+              message: "Subject id is required",
+            });
+          }
+          if (isNaN(subjectId)) {
+            return res.status(400).json({
+              code: 400002,
+              message: "Subject id is not a number",
+            });
+          }
+
+          await this.knex
+            .table("OAUTH2_Subjects")
+            .where({ id: subjectId })
+            .update({ name });
+
+          return res.json({ code: 200000, message: "Client updated" });
         } catch (error) {
           return res.status(500).json({
             code: 500000,
