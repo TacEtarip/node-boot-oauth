@@ -1344,15 +1344,18 @@ class OauthBoot {
       "OAUTH2_role:select",
       async (req, res) => {
         try {
-          const roles = await this.knex
-            .table("OAUTH2_Roles")
-            .select("OAUTH2_Roles.id", "OAUTH2_Roles.identifier")
-            .where({ deleted: false });
-          return res.status(200).json({
-            code: 200000,
-            message: "Select completed",
-            content: roles,
-          });
+          const basic = req.query["basic"];
+          if (basic && basic == "true") {
+            const roles = await this.knex
+              .table("OAUTH2_Roles")
+              .select("OAUTH2_Roles.id", "OAUTH2_Roles.identifier")
+              .where({ deleted: false });
+            return res.status(200).json({
+              code: 200000,
+              message: "Select completed",
+              content: roles,
+            });
+          }
         } catch (error) {
           console.log(error);
           return res.status(500).json({
