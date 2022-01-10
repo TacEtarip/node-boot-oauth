@@ -1396,11 +1396,11 @@ class OauthBoot {
               // "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
               // "OAUTH2_Options.allowed"
             )
-            .join(
-              "OAUTH2_Roles",
-              `OAUTH2_Roles.id`,
-              "OAUTH2_SubjectRole.roles_id"
-            )
+            // .join(
+            //   "OAUTH2_Roles",
+            //   `OAUTH2_Roles.id`,
+            //   "OAUTH2_SubjectRole.roles_id"
+            // )
             // .join(
             //   "OAUTH2_RoleOption",
             //   `OAUTH2_RoleOption.roles_id`,
@@ -1417,8 +1417,8 @@ class OauthBoot {
             //   "OAUTH2_Options.applicationPart_id"
             // )
             .where("OAUTH2_Roles.deleted", false)
-            .limit(itemsPerPage)
-            .offset(offset)
+            // .limit(itemsPerPage)
+            // .offset(offset)
             .orderBy("OAUTH2_Roles.id", order);
 
           console.log("roles", roles);
