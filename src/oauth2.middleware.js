@@ -904,7 +904,116 @@ class OauthBoot {
 
           console.log(users);
 
-          const parsedUsers = this.parseUserSearch(users);
+          const parsedUsers = this.parseSubjectSearch(users, "user");
+          return res.status(200).json({
+            code: 200000,
+            message: "Select completed",
+            content: {
+              items: parsedUsers,
+              pageIndex,
+              itemsPerPage,
+              totalItems: userTotalCount,
+              totalPages,
+            },
+          });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    // Get Clients
+    this.expressSecured.obGet(
+      "/auth/client",
+      "OAUTH2_client:select",
+      async (req, res) => {
+        try {
+          let itemsPerPage = 5;
+          let pageIndex = 0;
+          let order = "desc";
+
+          if (
+            req.query["itemsPerPage"] &&
+            parseInt(req.query["itemsPerPage"]) >= 1
+          ) {
+            itemsPerPage = parseInt(req.query["itemsPerPage"]);
+          }
+
+          if (req.query["pageIndex"] && parseInt(req.query["pageIndex"]) >= 0) {
+            pageIndex = parseInt(req.query["pageIndex"]);
+          }
+
+          if (
+            req.query["order"] &&
+            (req.query["order"] === "desc" || req.query["order"] === "asc")
+          ) {
+            order = req.query["order"];
+          }
+
+          const offset = itemsPerPage * pageIndex;
+
+          const userTotalCount = (
+            await this.knex
+              .table("OAUTH2_Clients")
+              .where("OAUTH2_Clients.deleted", false)
+              .count()
+          )[0]["count(*)"];
+
+          const totalPages = Math.ceil(userTotalCount / itemsPerPage);
+
+          const clients = await this.knex
+            .table("OAUTH2_Clients")
+            .select(
+              "OAUTH2_Clients.id",
+              "OAUTH2_Clients.identifier",
+              "OAUTH2_Subjects.id as subjectId",
+              "OAUTH2_Subjects.name",
+              "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
+              "OAUTH2_Options.allowed",
+              "OAUTH2_Roles.id as roleId",
+              "OAUTH2_Roles.identifier as roleIdentifier"
+            )
+            .join(
+              "OAUTH2_Subjects",
+              `OAUTH2_Clients.subject_id`,
+              "OAUTH2_Subjects.id"
+            )
+            .join(
+              "OAUTH2_SubjectRole",
+              `OAUTH2_Clients.subject_id`,
+              "OAUTH2_SubjectRole.subject_id"
+            )
+            .join(
+              "OAUTH2_Roles",
+              `OAUTH2_Roles.id`,
+              "OAUTH2_SubjectRole.roles_id"
+            )
+            .join(
+              "OAUTH2_RoleOption",
+              `OAUTH2_RoleOption.roles_id`,
+              "OAUTH2_SubjectRole.roles_id"
+            )
+            .join(
+              "OAUTH2_Options",
+              `OAUTH2_Options.id`,
+              "OAUTH2_RoleOption.options_id"
+            )
+            .join(
+              "OAUTH2_ApplicationPart",
+              `OAUTH2_ApplicationPart.id`,
+              "OAUTH2_Options.applicationPart_id"
+            )
+            .where("OAUTH2_Clients.deleted", false)
+            .limit(itemsPerPage)
+            .offset(offset)
+            .orderBy("id", order);
+
+          const parsedUsers = this.parseSubjectSearch(clients, "client");
+
           return res.status(200).json({
             code: 200000,
             message: "Select completed",
@@ -1041,7 +1150,7 @@ class OauthBoot {
             });
           }
 
-          const result = await this.knex
+          await this.knex
             .table("OAUTH2_Subjects")
             .where({ id: subjectId })
             .update({ name });
@@ -1327,8 +1436,10 @@ class OauthBoot {
     return newArray;
   };
 
-  parseUserSearch = (usersBaseArray) => {
+  parseSubjectSearch = (usersBaseArray, subjectType = "user") => {
     const newArray = [];
+    const userNameOrIdentifier =
+      subjectType === "user" ? "username" : "identifier";
     for (let index = 0; index < usersBaseArray.length; index++) {
       if (
         (usersBaseArray[index - 1] &&
@@ -1339,7 +1450,7 @@ class OauthBoot {
           id: usersBaseArray[index].id,
           subjectId: usersBaseArray[index].subjectId,
           name: usersBaseArray[index].name,
-          username: usersBaseArray[index].username,
+          [userNameOrIdentifier]: usersBaseArray[index][userNameOrIdentifier],
           roles: [
             {
               id: usersBaseArray[index].roleId,
@@ -1361,7 +1472,6 @@ class OauthBoot {
         if (indexRole === -1) {
           newArray[index - 1].roles.push({
             id: usersBaseArray[index].roleId,
-            subjectId: usersBaseArray[index].subjectId,
             identifier: usersBaseArray[index].roleIdentifier,
             options: [
               {
