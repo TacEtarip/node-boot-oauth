@@ -1399,7 +1399,7 @@ class OauthBoot {
             .join(
               "OAUTH2_RoleOption",
               `OAUTH2_RoleOption.roles_id`,
-              "OAUTH2_SubjectRole.roles_id"
+              "OAUTH2_Roles.id"
             )
             .join(
               "OAUTH2_Options",
