@@ -1379,22 +1379,22 @@ class OauthBoot {
 
           const offset = itemsPerPage * pageIndex;
 
-          const userTotalCount = (
+          const rolesTotalCount = (
             await this.knex
-              .table("OAUTH2_Users")
-              .where("OAUTH2_Users.deleted", false)
+              .table("OAUTH2_Roles")
+              .where("OAUTH2_Roles.deleted", false)
               .count()
           )[0]["count(*)"];
 
-          const totalPages = Math.ceil(userTotalCount / itemsPerPage);
+          const totalPages = Math.ceil(rolesTotalCount / itemsPerPage);
 
           const roles = await this.knex
             .table("OAUTH2_Roles")
             .select(
+              "OAUTH2_Roles.id as id",
+              "OAUTH2_Roles.identifier as identifier",
               "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
-              "OAUTH2_Options.allowed",
-              "OAUTH2_Roles.id",
-              "OAUTH2_Roles.identifier"
+              "OAUTH2_Options.allowed"
             )
             .join(
               "OAUTH2_Roles",
@@ -1432,7 +1432,7 @@ class OauthBoot {
               items: parsedRoles,
               pageIndex,
               itemsPerPage,
-              totalItems: userTotalCount,
+              totalItems: rolesTotalCount,
               totalPages,
             },
           });
