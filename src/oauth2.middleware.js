@@ -1391,31 +1391,31 @@ class OauthBoot {
           const roles = await this.knex
             .table("OAUTH2_Roles")
             .select(
-              "OAUTH2_Roles.id as id",
-              "OAUTH2_Roles.identifier as identifier",
-              "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
-              "OAUTH2_Options.allowed"
+              "OAUTH2_Roles.id",
+              "OAUTH2_Roles.identifier"
+              // "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
+              // "OAUTH2_Options.allowed"
             )
             .join(
               "OAUTH2_Roles",
               `OAUTH2_Roles.id`,
               "OAUTH2_SubjectRole.roles_id"
             )
-            .join(
-              "OAUTH2_RoleOption",
-              `OAUTH2_RoleOption.roles_id`,
-              "OAUTH2_SubjectRole.roles_id"
-            )
-            .join(
-              "OAUTH2_Options",
-              `OAUTH2_Options.id`,
-              "OAUTH2_RoleOption.options_id"
-            )
-            .join(
-              "OAUTH2_ApplicationPart",
-              `OAUTH2_ApplicationPart.id`,
-              "OAUTH2_Options.applicationPart_id"
-            )
+            // .join(
+            //   "OAUTH2_RoleOption",
+            //   `OAUTH2_RoleOption.roles_id`,
+            //   "OAUTH2_SubjectRole.roles_id"
+            // )
+            // .join(
+            //   "OAUTH2_Options",
+            //   `OAUTH2_Options.id`,
+            //   "OAUTH2_RoleOption.options_id"
+            // )
+            // .join(
+            //   "OAUTH2_ApplicationPart",
+            //   `OAUTH2_ApplicationPart.id`,
+            //   "OAUTH2_Options.applicationPart_id"
+            // )
             .where("OAUTH2_Roles.deleted", false)
             .limit(itemsPerPage)
             .offset(offset)
