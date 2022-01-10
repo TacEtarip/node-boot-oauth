@@ -1443,6 +1443,46 @@ class OauthBoot {
       }
     );
 
+    // Select Parts
+    this.expressSecured.obGet(
+      "/auth/part",
+      "OAUTH2_application:select",
+      async (req, res) => {
+        try {
+          const parts = await this.knex
+            .table("OAUTH2_ApplicationPart")
+            .select(
+              "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
+              "OAUTH2_Options.allowed"
+            )
+            .join(
+              "OAUTH2_Options",
+              `OAUTH2_Options.id`,
+              "OAUTH2_RoleOption.options_id"
+            )
+            .where("OAUTH2_ApplicationPart.deleted", false);
+
+          const parsedParts = this.joinSearch(
+            parts,
+            "applicationPart",
+            "allowed"
+          );
+
+          return res.status(200).json({
+            code: 200000,
+            message: "Select completed",
+            content: parsedParts,
+          });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
     // LOGIN
     this.expressSecured.obPost(
       "/auth/login",
