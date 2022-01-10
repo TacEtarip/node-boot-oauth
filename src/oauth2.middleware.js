@@ -1450,17 +1450,18 @@ class OauthBoot {
       async (req, res) => {
         try {
           const parts = await this.knex
-            .table("OAUTH2_ApplicationPart")
+            .table("OAUTH2_Options")
             .select(
               "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
               "OAUTH2_Options.allowed"
             )
             .join(
-              "OAUTH2_Options",
-              `OAUTH2_Options.id`,
+              "OAUTH2_ApplicationPart",
+              `OAUTH2_Options.applicationPart_id`,
               "OAUTH2_ApplicationPart.id"
             )
-            .where("OAUTH2_ApplicationPart.deleted", false);
+            .where("OAUTH2_ApplicationPart.deleted", false)
+            .where("OAUTH2_Options.deleted", false);
 
           console.log("parts", parts);
           const parsedParts = this.joinSearch(
