@@ -1167,17 +1167,51 @@ class OauthBoot {
               throw new Error(error.message);
             }
           });
-          await this.knex
-            .table("OAUTH2_Users")
-            .where({ subject_id: subjectId })
-            .update("deleted", true);
-
-          await this.knex
-            .table("OAUTH2_Subjects")
-            .where({ id: subjectId })
-            .update("deleted", true);
 
           return res.json({ code: 200000, message: "User deleted" });
+        } catch (error) {
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    // Delete client
+    this.expressSecured.obDelete(
+      "/auth/client",
+      "OAUTH2_client:delete",
+      async (req, res) => {
+        try {
+          const subjectId = req.query["subjectId"];
+          if (!subjectId) {
+            return res.status(400).json({
+              code: 400001,
+              message: "Subject id is required",
+            });
+          }
+          if (isNaN(subjectId)) {
+            return res.status(400).json({
+              code: 400002,
+              message: "Subject id is not a number",
+            });
+          }
+          await this.knex.transaction(async (trx) => {
+            try {
+              await trx("OAUTH2_Clients")
+                .where({ subject_id: subjectId })
+                .update("deleted", true);
+
+              await trx("OAUTH2_Subjects")
+                .where({ id: subjectId })
+                .update("deleted", true);
+            } catch (error) {
+              throw new Error(error.message);
+            }
+          });
+
+          return res.json({ code: 200000, message: "Client deleted" });
         } catch (error) {
           return res.status(500).json({
             code: 500000,
