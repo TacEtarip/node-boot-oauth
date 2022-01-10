@@ -1020,10 +1020,10 @@ class OauthBoot {
     // Update user
     this.expressSecured.obPut(
       "/auth/user",
+      "OAUTH2_user:update",
       this.validateBody({
         name: { type: "string" },
       }),
-      "OAUTH2_user:update",
       async (req, res) => {
         try {
           const { name } = req.body;
