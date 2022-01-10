@@ -847,7 +847,10 @@ class OauthBoot {
           const offset = itemsPerPage * pageIndex;
 
           const userTotalCount = (
-            await this.knex.table("OAUTH2_Users").count()
+            await this.knex
+              .table("OAUTH2_Users")
+              .where("OAUTH2_Users.deleted", false)
+              .count()
           )[0]["count(*)"];
 
           const totalPages = Math.ceil(userTotalCount / itemsPerPage);
