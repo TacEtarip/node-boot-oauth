@@ -1135,6 +1135,45 @@ class OauthBoot {
       }
     );
 
+    // Update client roles
+    this.expressSecured.obPut(
+      "/auth/client/role",
+      "OAUTH2_client:update",
+      this.validateBody({
+        roles: { type: "array" },
+      }),
+      async (req, res) => {
+        try {
+          const { roles } = req.body;
+          const userId = parseInt(req.query["id"]);
+
+          const subjectRolesToInsert = roles.map((r) => {
+            return { subject_id: userId, roles_id: r.id };
+          });
+
+          await this.knex
+            .table("OAUTH2_SubjectRole")
+            .insert(subjectRolesToInsert);
+
+          return res
+            .status(201)
+            .json({ code: 200000, message: "User roles added" });
+        } catch (error) {
+          console.log(error);
+          if (error.code && error.code === "ER_DUP_ENTRY") {
+            return res.status(500).json({
+              code: 500000,
+              message: "User already has those roles",
+            });
+          }
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
     // Delete user
     this.expressSecured.obDelete(
       "/auth/user",
