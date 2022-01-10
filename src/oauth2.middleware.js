@@ -963,8 +963,6 @@ class OauthBoot {
             .offset(offset)
             .orderBy("id", order);
 
-          console.log(users);
-
           const parsedUsers = this.parseSubjectSearch(users, "user");
           return res.status(200).json({
             code: 200000,
@@ -1356,6 +1354,87 @@ class OauthBoot {
               content: roles,
             });
           }
+          let itemsPerPage = 5;
+          let pageIndex = 0;
+          let order = "desc";
+
+          if (
+            req.query["itemsPerPage"] &&
+            parseInt(req.query["itemsPerPage"]) >= 1
+          ) {
+            itemsPerPage = parseInt(req.query["itemsPerPage"]);
+          }
+
+          if (req.query["pageIndex"] && parseInt(req.query["pageIndex"]) >= 0) {
+            pageIndex = parseInt(req.query["pageIndex"]);
+          }
+
+          if (
+            req.query["order"] &&
+            (req.query["order"] === "desc" || req.query["order"] === "asc")
+          ) {
+            order = req.query["order"];
+          }
+
+          const offset = itemsPerPage * pageIndex;
+
+          const userTotalCount = (
+            await this.knex
+              .table("OAUTH2_Users")
+              .where("OAUTH2_Users.deleted", false)
+              .count()
+          )[0]["count(*)"];
+
+          const totalPages = Math.ceil(userTotalCount / itemsPerPage);
+
+          const roles = await this.knex
+            .table("OAUTH2_Roles")
+            .select(
+              "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
+              "OAUTH2_Options.allowed",
+              "OAUTH2_Roles.id",
+              "OAUTH2_Roles.identifier"
+            )
+            .join(
+              "OAUTH2_Roles",
+              `OAUTH2_Roles.id`,
+              "OAUTH2_SubjectRole.roles_id"
+            )
+            .join(
+              "OAUTH2_RoleOption",
+              `OAUTH2_RoleOption.roles_id`,
+              "OAUTH2_SubjectRole.roles_id"
+            )
+            .join(
+              "OAUTH2_Options",
+              `OAUTH2_Options.id`,
+              "OAUTH2_RoleOption.options_id"
+            )
+            .join(
+              "OAUTH2_ApplicationPart",
+              `OAUTH2_ApplicationPart.id`,
+              "OAUTH2_Options.applicationPart_id"
+            )
+            .where("OAUTH2_Roles.deleted", false)
+            .limit(itemsPerPage)
+            .offset(offset)
+            .orderBy("id", order);
+
+          console.log("roles", roles);
+
+          const parsedRoles = this.parseRoleSearch(roles);
+
+          return res.status(200).json({
+            code: 200000,
+            message: "Select completed",
+            content: {
+              items: parsedRoles,
+              pageIndex,
+              itemsPerPage,
+              totalItems: userTotalCount,
+              totalPages,
+            },
+          });
         } catch (error) {
           console.log(error);
           return res.status(500).json({
@@ -1677,6 +1756,44 @@ class OauthBoot {
               indexOption
             ].allowed.push(usersBaseArray[index].allowed);
           }
+        }
+      }
+    }
+    return newArray;
+  };
+
+  parseRoleSearch = (rolesBaseArray) => {
+    const newArray = [];
+    for (let index = 0; index < rolesBaseArray.length; index++) {
+      if (
+        (rolesBaseArray[index - 1] &&
+          rolesBaseArray[index].id !== rolesBaseArray[index - 1].id) ||
+        index === 0
+      ) {
+        const roleObject = {
+          id: rolesBaseArray[index].id,
+          identifier: rolesBaseArray[index].subjectId,
+          options: [
+            {
+              applicationPartName: rolesBaseArray[index].applicationPart,
+              allowed: [rolesBaseArray[index].allowed],
+            },
+          ],
+        };
+        newArray.push(roleObject);
+      } else {
+        const indexOption = newArray[index - 1].options.findIndex(
+          (o) => o.applicationPartName === rolesBaseArray[index].applicationPart
+        );
+        if (indexOption === -1) {
+          newArray[index - 1].options.push({
+            applicationPartName: rolesBaseArray[index].applicationPart,
+            allowed: [rolesBaseArray[index].allowed],
+          });
+        } else {
+          newArray[index - 1].options[indexOption].allowed.push(
+            rolesBaseArray[index].allowed
+          );
         }
       }
     }
