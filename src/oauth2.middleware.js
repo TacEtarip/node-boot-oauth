@@ -780,11 +780,12 @@ class OauthBoot {
               console.log("allowedObject", allowedObject);
               const insertRoleOptions = [];
               for (const allowed in allowedObject) {
-                console.log(allowed);
-                insertRoleOptions.push({
-                  roles_id: insertResult[0],
-                  options_id: allowed.id,
-                });
+                for (const a of allowed) {
+                  insertRoleOptions.push({
+                    roles_id: insertResult[0],
+                    options_id: a.id,
+                  });
+                }
               }
               console.log(insertRoleOptions);
               await trx("OAUTH2_RoleOption").insert(insertRoleOptions);
