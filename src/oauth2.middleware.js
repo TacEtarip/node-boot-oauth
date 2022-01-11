@@ -1866,7 +1866,7 @@ class OauthBoot {
         };
         newArray.push(roleObject);
       } else {
-        const indexOption = newArray[index - 1].findIndex(
+        const indexOption = newArray.findIndex(
           (o) =>
             o.applicationPartName === partBaseArray[index].applicationPartName
         );
