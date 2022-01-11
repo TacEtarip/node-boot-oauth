@@ -780,7 +780,7 @@ class OauthBoot {
               console.log("allowedObject", allowedObject);
               const insertRoleOptions = [];
               for (const allowed in allowedObject) {
-                for (const a of allowed) {
+                for (const a of allowedObject[allowed]) {
                   console.log("a", a);
                   insertRoleOptions.push({
                     roles_id: insertResult[0],
