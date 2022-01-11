@@ -779,13 +779,13 @@ class OauthBoot {
               });
               const insertRoleOptions = [];
               for (const allowed in allowedObject) {
-                if (Object.hasOwnProperty.call(allowedObject, allowed)) {
-                  insertRoleOptions.push({
-                    roles_id: insertResult[0],
-                    options_id: allowed.id,
-                  });
-                }
+                console.log(allowed);
+                insertRoleOptions.push({
+                  roles_id: insertResult[0],
+                  options_id: allowed.id,
+                });
               }
+              console.log(insertRoleOptions);
               await trx("OAUTH2_RoleOption").insert(insertRoleOptions);
             } catch (error) {
               throw new Error(error.message);
