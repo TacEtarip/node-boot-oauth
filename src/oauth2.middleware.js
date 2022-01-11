@@ -767,21 +767,25 @@ class OauthBoot {
       "OAUTH2_role:create",
       this.validateBody({
         identifier: { type: "string" },
-        applications_id: { type: "number" },
-        options: { type: "array" },
+        allowedObject: { type: "object" },
       }),
       async (req, res) => {
         try {
-          const { identifier, applications_id, options } = req.body;
+          const { identifier, allowedObject } = req.body;
           await this.knex.transaction(async (trx) => {
             try {
               const insertResult = await trx("OAUTH2_Roles").insert({
                 identifier,
-                applications_id,
               });
-              const insertRoleOptions = options.map((opt) => {
-                return { options_id: opt, roles_id: insertResult[0] };
-              });
+              const insertRoleOptions = [];
+              for (const allowed in allowedObject) {
+                if (Object.hasOwnProperty.call(allowedObject, allowed)) {
+                  insertRoleOptions.push({
+                    roles_id: insertResult[0],
+                    options_id: allowed.id,
+                  });
+                }
+              }
               await trx("OAUTH2_RoleOption").insert(insertRoleOptions);
             } catch (error) {
               throw new Error(error.message);
@@ -1690,6 +1694,14 @@ class OauthBoot {
               return res.status(400).json({
                 code: 400000,
                 message: `Invalid body; ${option} is not a number`,
+              });
+            }
+            break;
+          case "object":
+            if (!(typeof req.body[option] === "object")) {
+              return res.status(400).json({
+                code: 400000,
+                message: `Invalid body; ${option} is not an object`,
               });
             }
             break;
