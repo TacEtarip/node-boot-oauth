@@ -775,12 +775,13 @@ class OauthBoot {
           await this.knex.transaction(async (trx) => {
             try {
               const insertResult = await trx("OAUTH2_Roles").insert({
-                identifier,
+                identifier: identifier.toLowerCase(),
               });
               console.log("allowedObject", allowedObject);
               const insertRoleOptions = [];
               for (const allowed in allowedObject) {
                 for (const a of allowed) {
+                  console.log("a", a);
                   insertRoleOptions.push({
                     roles_id: insertResult[0],
                     options_id: a.id,
