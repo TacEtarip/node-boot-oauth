@@ -1394,7 +1394,8 @@ class OauthBoot {
               "OAUTH2_Roles.id",
               "OAUTH2_Roles.identifier",
               "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
-              "OAUTH2_Options.allowed"
+              "OAUTH2_Options.allowed",
+              "OAUTH2_Options.id as optionId"
             )
             .join(
               "OAUTH2_RoleOption",
@@ -1415,8 +1416,6 @@ class OauthBoot {
             .limit(itemsPerPage)
             .offset(offset)
             .orderBy("OAUTH2_Roles.id", order);
-
-          console.log("roles", roles);
 
           const parsedRoles = this.parseRoleSearch(roles);
 
@@ -1453,7 +1452,8 @@ class OauthBoot {
             .table("OAUTH2_Options")
             .select(
               "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
-              "OAUTH2_Options.allowed"
+              "OAUTH2_Options.allowed",
+              "OAUTH2_Options.id as optionId"
             )
             .join(
               "OAUTH2_ApplicationPart",
@@ -1463,12 +1463,7 @@ class OauthBoot {
             .where("OAUTH2_ApplicationPart.deleted", false)
             .where("OAUTH2_Options.deleted", false);
 
-          console.log("parts", parts);
-          const parsedParts = this.joinSearch(
-            parts,
-            "applicationPartName",
-            "allowed"
-          );
+          const parsedParts = this.parsePartSearch(parts);
 
           return res.status(200).json({
             code: 200000,
@@ -1816,11 +1811,15 @@ class OauthBoot {
           options: [
             {
               applicationPartName: rolesBaseArray[index].applicationPart,
-              allowed: [rolesBaseArray[index].allowed],
+              allowed: [
+                {
+                  allowed: rolesBaseArray[index].allowed,
+                  id: rolesBaseArray[index].optionId,
+                },
+              ],
             },
           ],
         };
-        console.log("roleObject", roleObject);
         newArray.push(roleObject);
       } else {
         const indexOption = newArray[index - 1].options.findIndex(
@@ -1829,13 +1828,52 @@ class OauthBoot {
         if (indexOption === -1) {
           newArray[index - 1].options.push({
             applicationPartName: rolesBaseArray[index].applicationPart,
-            allowed: [rolesBaseArray[index].allowed],
+            allowed: [
+              {
+                allowed: rolesBaseArray[index].allowed,
+                id: rolesBaseArray[index].optionId,
+              },
+            ],
           });
         } else {
-          newArray[index - 1].options[indexOption].allowed.push(
-            rolesBaseArray[index].allowed
-          );
+          newArray[index - 1].options[indexOption].allowed.push({
+            allowed: rolesBaseArray[index].allowed,
+            id: rolesBaseArray[index].optionId,
+          });
         }
+      }
+    }
+    return newArray;
+  };
+
+  parsePartSearch = (partBaseArray) => {
+    const newArray = [];
+    for (let index = 0; index < partBaseArray.length; index++) {
+      if (
+        (partBaseArray[index - 1] &&
+          partBaseArray[index].applicationPartName !==
+            partBaseArray[index - 1].applicationPartName) ||
+        index === 0
+      ) {
+        const roleObject = {
+          applicationPartName: partBaseArray[index].applicationPartName,
+          allowed: [
+            {
+              allowed: partBaseArray[index].allowed,
+              id: partBaseArray[index].optionId,
+            },
+          ],
+        };
+        newArray.push(roleObject);
+      } else {
+        const indexOption = newArray[index - 1].findIndex(
+          (o) =>
+            o.applicationPartName === partBaseArray[index].applicationPartName
+        );
+        newArray[indexOption].allowed.push({
+          allowed: partBaseArray[index].allowed,
+          id: partBaseArray[index].optionId,
+        });
       }
     }
     return newArray;
