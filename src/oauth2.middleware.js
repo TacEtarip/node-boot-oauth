@@ -1595,7 +1595,6 @@ class OauthBoot {
           return res.status(200).json({
             code: 200000,
             message: "Role options updated",
-            content: parsedParts,
           });
         } catch (error) {
           console.log(error);
