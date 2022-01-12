@@ -1455,6 +1455,7 @@ class OauthBoot {
             .offset(offset)
             .orderBy("OAUTH2_Roles.id", order);
 
+          console.log("roles", roles);
           const parsedRoles = this.parseRoleSearch(roles);
 
           console.log("parsedRoles", parsedRoles);
