@@ -1713,11 +1713,15 @@ class OauthBoot {
         if (exp === ":" || exp === undefined) return next();
         const parsedExp = exp.split(":");
         if (parsedExp.length !== 2) {
-          return res.json({ code: 403200, message: "Bad guard input" });
+          return res
+            .status(403)
+            .json({ code: 403200, message: "Bad guard input" });
         }
         const user = res.locals.user;
         if (!user) {
-          return res.json({ code: 403100, message: "User not authorized" });
+          return res
+            .status(403)
+            .json({ code: 403100, message: "User not authorized" });
         }
         const subjectTableToSearch =
           user.subjectType === "user" ? "OAUTH2_Users" : "OAUTH2_Clients";
