@@ -1899,11 +1899,12 @@ class OauthBoot {
         };
         newArray.push(userObject);
       } else {
-        const indexRole = newArray[index - 1].roles.findIndex(
+        const lastIndex = newArray.length - 1;
+        const indexRole = newArray[lastIndex].roles.findIndex(
           (r) => r.id === usersBaseArray[index].roleId
         );
         if (indexRole === -1) {
-          newArray[index - 1].roles.push({
+          newArray[lastIndex].roles.push({
             id: usersBaseArray[index].roleId,
             identifier: usersBaseArray[index].roleIdentifier,
             options: [
@@ -1914,19 +1915,19 @@ class OauthBoot {
             ],
           });
         } else {
-          const indexOption = newArray[index - 1].roles[
+          const indexOption = newArray[lastIndex].roles[
             indexRole
           ].options.findIndex(
             (o) =>
               o.applicationPartName === usersBaseArray[index].applicationPart
           );
           if (indexOption === -1) {
-            newArray[index - 1].roles[indexRole].options.push({
+            newArray[lastIndex].roles[indexRole].options.push({
               applicationPartName: usersBaseArray[index].applicationPart,
               allowed: [usersBaseArray[index].allowed],
             });
           } else {
-            newArray[index - 1].roles[indexRole].options[
+            newArray[lastIndex].roles[indexRole].options[
               indexOption
             ].allowed.push(usersBaseArray[index].allowed);
           }
