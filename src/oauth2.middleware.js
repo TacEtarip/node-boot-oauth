@@ -1586,7 +1586,9 @@ class OauthBoot {
                 }
               }
 
-              await trx("OAUTH2_RoleOption").insert(roleOptionToInsert);
+              if (roleOptionToInsert.length !== 0) {
+                await trx("OAUTH2_RoleOption").insert(roleOptionToInsert);
+              }
             } catch (error) {
               throw new Error(error.message);
             }
