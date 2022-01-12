@@ -1682,23 +1682,19 @@ class OauthBoot {
         const authToken =
           req.query["access_token"] || req.headers.authorization.split(" ")[1];
         console.log(req.headers.authorization);
-        jwt.verify(
-          authToken,
-          this.jwtSecret,
-          // { audience: auth.split(" ")[2] + " " + auth.split(" ")[3] },
-          (err, decode) => {
-            if (err) {
-              res.locals.user = undefined;
-              return res.status(401).json({
-                code: 400001,
-                message: "Incorrect token",
-              });
-            } else {
-              res.locals.user = decode.data;
-            }
-            next();
+        jwt.verify(authToken, this.jwtSecret, (err, decode) => {
+          if (err) {
+            res.locals.user = undefined;
+            return res.status(401).json({
+              code: 400001,
+              message: "Incorrect token",
+            });
+          } else {
+            console.log(decode.data);
+            res.locals.user = decode.data;
           }
-        );
+          next();
+        });
       } else {
         res.locals.user = undefined;
         next();
