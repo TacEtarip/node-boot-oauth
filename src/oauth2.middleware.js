@@ -1576,7 +1576,6 @@ class OauthBoot {
                 const indexOfRoleOption = newAllowedArray.findIndex(
                   (orp) => orp.options_id === allowed.options_id
                 );
-                console.log(allowed);
                 if (indexOfRoleOption === -1) {
                   await trx("OAUTH2_RoleOption")
                     .where({
@@ -1587,7 +1586,7 @@ class OauthBoot {
                 }
               }
 
-              await trx("OAUTH2_RoleOption").insert(newAllowedArray);
+              await trx("OAUTH2_RoleOption").insert(roleOptionToInsert);
             } catch (error) {
               throw new Error(error.message);
             }
