@@ -1577,11 +1577,14 @@ class OauthBoot {
                 const indexOfRoleOption = newAllowedArray.findIndex(
                   (orp) => orp.options_id === allowed.options_id
                 );
+                console.log(allowed);
                 if (indexOfRoleOption === -1) {
-                  roleOptionDeleteQuery = roleOptionDeleteQuery.orWhere({
-                    roles_id: allowed.roles_id,
-                    options_id: allowed.options_id,
-                  });
+                  await trx("OAUTH2_RoleOption")
+                    .where({
+                      roles_id: allowed.roles_id,
+                      options_id: allowed.options_id,
+                    })
+                    .del();
                 }
               }
 
@@ -1770,7 +1773,9 @@ class OauthBoot {
               p.allowedTerm.indexOf(parsedExp[1]) !== -1)
         );
         if (patternIndex !== -1) return next();
-        return res.json({ code: 403100, message: "User not authorized" });
+        return res
+          .status(403)
+          .json({ code: 403100, message: "User not authorized" });
       } catch (error) {
         console.log("thiserror", error);
         return res.status(500).json({ code: 500000, message: error.message });
