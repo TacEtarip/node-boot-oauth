@@ -1961,11 +1961,12 @@ class OauthBoot {
         };
         newArray.push(roleObject);
       } else {
-        const indexOption = newArray[index - 1].options.findIndex(
+        const lastIndex = newArray.length - 1;
+        const indexOption = newArray[lastIndex].options.findIndex(
           (o) => o.applicationPartName === rolesBaseArray[index].applicationPart
         );
         if (indexOption === -1) {
-          newArray[index - 1].options.push({
+          newArray[lastIndex].options.push({
             applicationPartName: rolesBaseArray[index].applicationPart,
             allowed: [
               {
@@ -1975,7 +1976,7 @@ class OauthBoot {
             ],
           });
         } else {
-          newArray[index - 1].options[indexOption].allowed.push({
+          newArray[lastIndex].options[indexOption].allowed.push({
             allowed: rolesBaseArray[index].allowed,
             id: rolesBaseArray[index].optionId,
           });
