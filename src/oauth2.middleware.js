@@ -930,6 +930,7 @@ class OauthBoot {
               "OAUTH2_Subjects.id as subjectId",
               "OAUTH2_Subjects.name",
               "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
+              "OAUTH2_ApplicationPart.id as partId",
               "OAUTH2_Options.allowed",
               "OAUTH2_Roles.id as roleId",
               "OAUTH2_Roles.identifier as roleIdentifier"
@@ -1038,6 +1039,7 @@ class OauthBoot {
               "OAUTH2_Subjects.id as subjectId",
               "OAUTH2_Subjects.name",
               "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
+              "OAUTH2_ApplicationPart.id as partId",
               "OAUTH2_Options.allowed",
               "OAUTH2_Roles.id as roleId",
               "OAUTH2_Roles.identifier as roleIdentifier"
@@ -1431,6 +1433,7 @@ class OauthBoot {
             .select(
               "OAUTH2_Roles.id",
               "OAUTH2_Roles.identifier",
+              "OAUTH2_ApplicationPart.id as partId",
               "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
               "OAUTH2_Options.allowed",
               "OAUTH2_Options.id as optionId"
@@ -1491,6 +1494,7 @@ class OauthBoot {
             .table("OAUTH2_Options")
             .select(
               "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
+              "OAUTH2_ApplicationPart.id as partId",
               "OAUTH2_Options.allowed",
               "OAUTH2_Options.id as optionId"
             )
@@ -1890,6 +1894,7 @@ class OauthBoot {
               identifier: usersBaseArray[index].roleIdentifier,
               options: [
                 {
+                  id: partBaseArray[index].partId,
                   applicationPartName: usersBaseArray[index].applicationPart,
                   allowed: [usersBaseArray[index].allowed],
                 },
@@ -1909,6 +1914,7 @@ class OauthBoot {
             identifier: usersBaseArray[index].roleIdentifier,
             options: [
               {
+                id: partBaseArray[index].partId,
                 applicationPartName: usersBaseArray[index].applicationPart,
                 allowed: [usersBaseArray[index].allowed],
               },
@@ -1923,6 +1929,7 @@ class OauthBoot {
           );
           if (indexOption === -1) {
             newArray[lastIndex].roles[indexRole].options.push({
+              id: partBaseArray[index].partId,
               applicationPartName: usersBaseArray[index].applicationPart,
               allowed: [usersBaseArray[index].allowed],
             });
@@ -1950,6 +1957,7 @@ class OauthBoot {
           identifier: rolesBaseArray[index].identifier,
           options: [
             {
+              id: partBaseArray[index].partId,
               applicationPartName: rolesBaseArray[index].applicationPart,
               allowed: [
                 {
@@ -1968,6 +1976,7 @@ class OauthBoot {
         );
         if (indexOption === -1) {
           newArray[lastIndex].options.push({
+            id: partBaseArray[index].partId,
             applicationPartName: rolesBaseArray[index].applicationPart,
             allowed: [
               {
@@ -1997,6 +2006,7 @@ class OauthBoot {
         index === 0
       ) {
         const roleObject = {
+          id: partBaseArray[index].partId,
           applicationPartName: partBaseArray[index].applicationPartName,
           allowed: [
             {
