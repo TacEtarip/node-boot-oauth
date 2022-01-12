@@ -1543,7 +1543,6 @@ class OauthBoot {
             try {
               const newAllowedArray = [];
               const originalAllowedArray = [];
-              let roleOptionDeleteQuery = trx("OAUTH2_RoleOption");
               const roleOptionToInsert = [];
 
               for (const allowed in newAllowedObject) {
@@ -1588,7 +1587,6 @@ class OauthBoot {
                 }
               }
 
-              await roleOptionDeleteQuery.del();
               await trx("OAUTH2_RoleOption").insert(newAllowedArray);
             } catch (error) {
               throw new Error(error.message);
