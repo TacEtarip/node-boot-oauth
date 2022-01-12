@@ -1894,7 +1894,7 @@ class OauthBoot {
               identifier: usersBaseArray[index].roleIdentifier,
               options: [
                 {
-                  id: partBaseArray[index].partId,
+                  id: usersBaseArray[index].partId,
                   applicationPartName: usersBaseArray[index].applicationPart,
                   allowed: [usersBaseArray[index].allowed],
                 },
@@ -1914,7 +1914,7 @@ class OauthBoot {
             identifier: usersBaseArray[index].roleIdentifier,
             options: [
               {
-                id: partBaseArray[index].partId,
+                id: usersBaseArray[index].partId,
                 applicationPartName: usersBaseArray[index].applicationPart,
                 allowed: [usersBaseArray[index].allowed],
               },
@@ -1929,7 +1929,7 @@ class OauthBoot {
           );
           if (indexOption === -1) {
             newArray[lastIndex].roles[indexRole].options.push({
-              id: partBaseArray[index].partId,
+              id: usersBaseArray[index].partId,
               applicationPartName: usersBaseArray[index].applicationPart,
               allowed: [usersBaseArray[index].allowed],
             });
@@ -1957,7 +1957,7 @@ class OauthBoot {
           identifier: rolesBaseArray[index].identifier,
           options: [
             {
-              id: partBaseArray[index].partId,
+              id: rolesBaseArray[index].partId,
               applicationPartName: rolesBaseArray[index].applicationPart,
               allowed: [
                 {
@@ -1976,7 +1976,7 @@ class OauthBoot {
         );
         if (indexOption === -1) {
           newArray[lastIndex].options.push({
-            id: partBaseArray[index].partId,
+            id: rolesBaseArray[index].partId,
             applicationPartName: rolesBaseArray[index].applicationPart,
             allowed: [
               {
