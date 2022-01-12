@@ -777,11 +777,9 @@ class OauthBoot {
               const insertResult = await trx("OAUTH2_Roles").insert({
                 identifier: identifier.toLowerCase(),
               });
-              console.log("allowedObject", allowedObject);
               const insertRoleOptions = [];
               for (const allowed in allowedObject) {
                 for (const a of allowedObject[allowed]) {
-                  console.log("a", a);
                   insertRoleOptions.push({
                     roles_id: insertResult[0],
                     options_id: a.id,
@@ -1266,6 +1264,39 @@ class OauthBoot {
       }
     );
 
+    // Delete role
+    this.expressSecured.obDelete(
+      "/auth/role",
+      "OAUTH2_client:delete",
+      async (req, res) => {
+        try {
+          const roleId = req.query["id"];
+          if (!roleId) {
+            return res.status(400).json({
+              code: 400001,
+              message: "Role id is required",
+            });
+          }
+          if (isNaN(roleId)) {
+            return res.status(400).json({
+              code: 400002,
+              message: "Role id is not a number",
+            });
+          }
+          await this.knex
+            .table("OAUTH2_Roles")
+            .where({ id: roleId })
+            .update("deleted", true);
+          return res.json({ code: 200000, message: "Client deleted" });
+        } catch (error) {
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
     // Update user
     this.expressSecured.obPut(
       "/auth/user",
@@ -1475,6 +1506,95 @@ class OauthBoot {
           return res.status(200).json({
             code: 200000,
             message: "Select completed",
+            content: parsedParts,
+          });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    // Update role options
+    this.expressSecured.obPut(
+      "/auth/role/option",
+      this.validateBody({
+        newAllowedObject: { type: "object" },
+        originalAllowedObject: { type: "object" },
+      }),
+      "OAUTH2_role:update",
+      async (req, res) => {
+        try {
+          const { newAllowedObject, originalAllowedObject } = req.body;
+
+          const roleId = req.query["id"];
+
+          if (!roleId) {
+            return res.status(400).json({
+              code: 400001,
+              message: "Identifier is required",
+            });
+          }
+
+          await this.knex.transaction(async (trx) => {
+            try {
+              const newAllowedArray = [];
+              const originalAllowedArray = [];
+              let roleOptionDeleteQuery = trx("OAUTH2_RoleOption");
+              const roleOptionToInsert = [];
+
+              for (const allowed in newAllowedObject) {
+                for (const a of newAllowedObject[allowed]) {
+                  newAllowedArray.push({
+                    roles_id: roleId,
+                    options_id: a.id,
+                  });
+                }
+              }
+
+              for (const allowed in originalAllowedObject) {
+                for (const a of originalAllowedObject[allowed]) {
+                  originalAllowedArray.push({
+                    roles_id: roleId,
+                    options_id: a.id,
+                  });
+                }
+              }
+
+              for (const allowed of newAllowedArray) {
+                const indexOfRoleOption = originalAllowedArray.findIndex(
+                  (orp) => orp.options_id === allowed.options_id
+                );
+                if (indexOfRoleOption === -1) {
+                  roleOptionToInsert.push(allowed);
+                }
+              }
+
+              for (const allowed of originalAllowedArray) {
+                const indexOfRoleOption = newAllowedArray.findIndex(
+                  (orp) => orp.options_id === allowed.options_id
+                );
+                if (indexOfRoleOption === -1) {
+                  roleOptionDeleteQuery = roleOptionDeleteQuery.orWhere({
+                    roles_id: allowed.roles_id,
+                    options_id: allowed.options_id,
+                  });
+                }
+              }
+
+              await roleOptionDeleteQuery.del();
+              await trx("OAUTH2_RoleOption").insert(newAllowedArray);
+            } catch (error) {
+              throw new Error(error.message);
+            }
+          });
+
+          return res.status(200).json({
+            code: 200000,
+            message: "Role options updated",
             content: parsedParts,
           });
         } catch (error) {
