@@ -15,7 +15,7 @@ class OauthBoot {
     try {
       await this.auditDataBase();
       this.expressSecured.use(this.decodeToken());
-      this.expressSecured.use(this.guard());
+      // this.expressSecured.use(this.guard());
       this.addEndPoints();
     } catch (error) {
       console.log(error);
@@ -607,7 +607,7 @@ class OauthBoot {
   bootOauthExpress(expressApp) {
     expressApp.obPost = (path, allowed, ...handler) => {
       expressApp.set(path, allowed);
-      return expressApp.post(path, ...handler);
+      return expressApp.post(path, this.guard, ...handler);
     };
 
     expressApp.obGet = (path, allowed, ...handler) => {
@@ -617,12 +617,12 @@ class OauthBoot {
 
     expressApp.obPut = (path, allowed, ...handler) => {
       expressApp.set(path, allowed);
-      return expressApp.put(path, ...handler);
+      return expressApp.put(path, this.guard, ...handler);
     };
 
     expressApp.obDelete = (path, allowed, ...handler) => {
       expressApp.set(path, allowed);
-      return expressApp.delete(path, ...handler);
+      return expressApp.delete(path, this.guard, ...handler);
     };
 
     return expressApp;
@@ -2044,7 +2044,7 @@ class OauthBoot {
     return async (req, res, next) => {
       try {
         const exp = this.expressSecured.get(req.path);
-        console.log(req);
+        console.log("those", req.params);
         if (exp === ":" || exp === undefined) return next();
         const parsedExp = exp.split(":");
         if (parsedExp.length !== 2) {
@@ -2113,7 +2113,7 @@ class OauthBoot {
           .status(403)
           .json({ code: 403100, message: "User not authorized" });
       } catch (error) {
-        console.log("thiserror", error);
+        console.log(error);
         return res.status(500).json({ code: 500000, message: error.message });
       }
     };
