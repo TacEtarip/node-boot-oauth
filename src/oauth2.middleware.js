@@ -1550,7 +1550,7 @@ class OauthBoot {
 
           const totalPages = Math.ceil(partsTotalCount / itemsPerPage);
 
-          const partsFullResult = partsSelectBasicQuery
+          const partsFullResult = await partsSelectBasicQuery
             .limit(itemsPerPage)
             .offset(offset)
             .orderBy("OAUTH2_ApplicationPart.id", order);
