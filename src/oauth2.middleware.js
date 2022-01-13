@@ -2044,6 +2044,10 @@ class OauthBoot {
     return async (req, res, next) => {
       try {
         const exp = this.expressSecured.get(req.path);
+        console.log(exp);
+        console.log(req.params);
+        console.log("req.params.id", req.params.id);
+        console.log(req.path);
         if (exp === ":" || exp === undefined) return next();
         const parsedExp = exp.split(":");
         if (parsedExp.length !== 2) {
@@ -2107,8 +2111,6 @@ class OauthBoot {
             (p.applicationPart === parsedExp[0] &&
               p.allowedTerm.indexOf(parsedExp[1]) !== -1)
         );
-        console.log("req.params", req.params);
-        console.log(req.path);
         if (patternIndex !== -1) return next();
         return res
           .status(403)
