@@ -1491,7 +1491,7 @@ class OauthBoot {
       async (req, res) => {
         try {
           let partsSelectBasicQuery = this.knex
-            .table("OAUTH2_Options")
+            .table("OAUTH2_ApplicationPart")
             .select(
               "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
               "OAUTH2_ApplicationPart.id as partId",
@@ -1499,9 +1499,9 @@ class OauthBoot {
               "OAUTH2_Options.id as optionId"
             )
             .join(
-              "OAUTH2_ApplicationPart",
-              `OAUTH2_Options.applicationPart_id`,
+              "OAUTH2_Options",
               "OAUTH2_ApplicationPart.id"
+              `OAUTH2_Options.applicationPart_id`,
             )
             .where("OAUTH2_ApplicationPart.deleted", false)
             .where("OAUTH2_Options.deleted", false);
