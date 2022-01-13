@@ -2043,9 +2043,21 @@ class OauthBoot {
   guard() {
     return async (req, res, next) => {
       try {
-        const exp = this.expressSecured.get(req.path);
-        console.log("those", req.params);
-        if (exp === ":" || exp === undefined) return next();
+        let pathToSearch = req.path;
+        const paramsKeys = Object.keys(req.params);
+        if (paramsKeys.length > 0) {
+          for (const param of paramsKeys) {
+            pathToSearch.replace(req.params[param], `:${param}`);
+          }
+        }
+        console.log(pathToSearch);
+        const exp = this.expressSecured.get(pathToSearch);
+        if (exp === undefined) {
+          return res
+            .status(403)
+            .json({ code: 403100, message: "User not authorized" });
+        }
+        if (exp === ":") return next();
         const parsedExp = exp.split(":");
         if (parsedExp.length !== 2) {
           return res
