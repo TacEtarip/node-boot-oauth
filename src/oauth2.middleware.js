@@ -1183,7 +1183,7 @@ class OauthBoot {
 
     // Update user roles
     this.expressSecured.obPut(
-      "/auth/user/role",
+      "/auth/user/role/:id",
       "OAUTH2_user:update",
       this.validateBody({
         roles: { type: "array" },
@@ -1191,13 +1191,21 @@ class OauthBoot {
       async (req, res) => {
         try {
           const { roles } = req.body;
-          const userId = parseInt(req.query["id"]);
+
+          const userId = req.params.id;
+
+          if (userId && isNaN(userId)) {
+            return res.status(400).json({
+              code: 400000,
+              message: "User id is not valid",
+            });
+          }
 
           const subjectRolesToInsert = roles.map((r) => {
             return { subject_id: userId, roles_id: r.id };
           });
 
-          const result = await this.knex
+          await this.knex
             .table("OAUTH2_SubjectRole")
             .insert(subjectRolesToInsert);
 
@@ -1222,7 +1230,7 @@ class OauthBoot {
 
     // Update client roles
     this.expressSecured.obPut(
-      "/auth/client/role",
+      "/auth/client/role/:id",
       "OAUTH2_client:update",
       this.validateBody({
         roles: { type: "array" },
@@ -1230,10 +1238,17 @@ class OauthBoot {
       async (req, res) => {
         try {
           const { roles } = req.body;
-          const userId = parseInt(req.query["id"]);
+          const clientId = req.params.id;
+
+          if (clientId && isNaN(clientId)) {
+            return res.status(400).json({
+              code: 400000,
+              message: "User id is not valid",
+            });
+          }
 
           const subjectRolesToInsert = roles.map((r) => {
-            return { subject_id: userId, roles_id: r.id };
+            return { subject_id: clientId, roles_id: r.id };
           });
 
           await this.knex
@@ -1261,21 +1276,15 @@ class OauthBoot {
 
     // Delete user
     this.expressSecured.obDelete(
-      "/auth/user",
+      "/auth/user/:subjectId",
       "OAUTH2_user:delete",
       async (req, res) => {
         try {
-          const subjectId = req.query["subjectId"];
-          if (!subjectId) {
+          const subjectId = req.params.subjectId;
+          if (subjectId && isNaN(subjectId)) {
             return res.status(400).json({
               code: 400001,
               message: "Subject id is required",
-            });
-          }
-          if (isNaN(subjectId)) {
-            return res.status(400).json({
-              code: 400002,
-              message: "Subject id is not a number",
             });
           }
           await this.knex.transaction(async (trx) => {
@@ -1304,23 +1313,19 @@ class OauthBoot {
 
     // Delete client
     this.expressSecured.obDelete(
-      "/auth/client",
+      "/auth/client/:subjectId",
       "OAUTH2_client:delete",
       async (req, res) => {
         try {
-          const subjectId = req.query["subjectId"];
-          if (!subjectId) {
+          const subjectId = req.params.subjectId;
+
+          if (subjectId && isNaN(subjectId)) {
             return res.status(400).json({
               code: 400001,
               message: "Subject id is required",
             });
           }
-          if (isNaN(subjectId)) {
-            return res.status(400).json({
-              code: 400002,
-              message: "Subject id is not a number",
-            });
-          }
+
           await this.knex.transaction(async (trx) => {
             try {
               await trx("OAUTH2_Clients")
@@ -1347,23 +1352,19 @@ class OauthBoot {
 
     // Delete role
     this.expressSecured.obDelete(
-      "/auth/role",
+      "/auth/role/:id",
       "OAUTH2_client:delete",
       async (req, res) => {
         try {
-          const roleId = req.query["id"];
-          if (!roleId) {
+          const roleId = req.params.id;
+
+          if (roleId && isNaN(roleId)) {
             return res.status(400).json({
               code: 400001,
-              message: "Role id is required",
+              message: "Role id is invalid",
             });
           }
-          if (isNaN(roleId)) {
-            return res.status(400).json({
-              code: 400002,
-              message: "Role id is not a number",
-            });
-          }
+
           await this.knex
             .table("OAUTH2_Roles")
             .where({ id: roleId })
@@ -1380,7 +1381,7 @@ class OauthBoot {
 
     // Update user
     this.expressSecured.obPut(
-      "/auth/user",
+      "/auth/user/:subjectId",
       "OAUTH2_user:update",
       this.validateBody({
         name: { type: "string" },
@@ -1388,17 +1389,12 @@ class OauthBoot {
       async (req, res) => {
         try {
           const { name } = req.body;
-          const subjectId = req.query["subjectId"];
-          if (!subjectId) {
+          const subjectId = req.params.subjectId;
+
+          if (subjectId && isNaN(subjectId)) {
             return res.status(400).json({
               code: 400001,
-              message: "Subject id is required",
-            });
-          }
-          if (isNaN(subjectId)) {
-            return res.status(400).json({
-              code: 400002,
-              message: "Subject id is not a number",
+              message: "Subject id is invalid",
             });
           }
 
@@ -1419,7 +1415,7 @@ class OauthBoot {
 
     // Update client
     this.expressSecured.obPut(
-      "/auth/client",
+      "/auth/client/:subjectId",
       "OAUTH2_client:update",
       this.validateBody({
         name: { type: "string" },
@@ -1427,17 +1423,12 @@ class OauthBoot {
       async (req, res) => {
         try {
           const { name } = req.body;
-          const subjectId = req.query["subjectId"];
-          if (!subjectId) {
+          const subjectId = req.params.subjectId;
+
+          if (subjectId && isNaN(subjectId)) {
             return res.status(400).json({
               code: 400001,
-              message: "Subject id is required",
-            });
-          }
-          if (isNaN(subjectId)) {
-            return res.status(400).json({
-              code: 400002,
-              message: "Subject id is not a number",
+              message: "Subject id is invalid",
             });
           }
 
@@ -1676,7 +1667,7 @@ class OauthBoot {
 
     // Update role options
     this.expressSecured.obPut(
-      "/auth/role/option",
+      "/auth/role/:id/option",
       "OAUTH2_role:update",
       this.validateBody({
         newAllowedObject: { type: "object" },
@@ -1686,9 +1677,9 @@ class OauthBoot {
         try {
           const { newAllowedObject, originalAllowedObject } = req.body;
 
-          const roleId = req.query["id"];
+          const roleId = req.params.id;
 
-          if (!roleId) {
+          if (roleId && isNaN(roleId)) {
             return res.status(400).json({
               code: 400001,
               message: "Identifier is required",
@@ -1806,7 +1797,7 @@ class OauthBoot {
 
     // Update part options
     this.expressSecured.obPut(
-      "/auth/part/option",
+      "/auth/part/:id/option",
       "OAUTH2_application:update",
       this.validateBody({
         newPartOptions: { type: "array" },
@@ -1816,12 +1807,12 @@ class OauthBoot {
         try {
           const { newPartOptions, originalPartOptions } = req.body;
 
-          const partId = req.query["id"];
+          const partId = req.params.id;
 
-          if (!partId) {
+          if (partId && isNaN(partId)) {
             return res.status(400).json({
               code: 400001,
-              message: "Part id is required",
+              message: "Part id is invalid",
             });
           }
 
@@ -1876,14 +1867,14 @@ class OauthBoot {
     );
 
     // Delete part
-    this.expressSecured.obPut(
-      "/auth/part",
+    this.expressSecured.obDelete(
+      "/auth/part/:id",
       "OAUTH2_application:delete",
       async (req, res) => {
         try {
-          const partId = req.query["id"];
+          const partId = req.params.id;
 
-          if (!partId) {
+          if (partId && isNaN(partId)) {
             return res.status(400).json({
               code: 400001,
               message: "Part id is required",
@@ -2047,14 +2038,9 @@ class OauthBoot {
         const paramsKeys = Object.keys(req.params);
         if (paramsKeys.length > 0) {
           for (const param of paramsKeys) {
-            console.log("to replace");
-            console.log(req.params[param]);
-            console.log(pathToSearch);
-            console.log(param);
             pathToSearch = pathToSearch.replace(req.params[param], `:${param}`);
           }
         }
-        console.log(pathToSearch);
         const exp = this.expressSecured.get(pathToSearch);
         if (exp === undefined) {
           return res
