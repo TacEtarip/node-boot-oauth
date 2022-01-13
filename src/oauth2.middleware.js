@@ -2047,6 +2047,9 @@ class OauthBoot {
         const paramsKeys = Object.keys(req.params);
         if (paramsKeys.length > 0) {
           for (const param of paramsKeys) {
+            console.log("to replace");
+            console.log(req.params[param]);
+            console.log(pathToSearch);
             pathToSearch.replace(req.params[param], `:${param}`);
           }
         }
