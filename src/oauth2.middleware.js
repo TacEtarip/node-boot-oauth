@@ -15,8 +15,8 @@ class OauthBoot {
     try {
       await this.auditDataBase();
       this.expressSecured.use(this.decodeToken());
-      this.addEndPoints();
       this.expressSecured.use(this.guard());
+      this.addEndPoints();
     } catch (error) {
       console.log(error);
       throw new Error(error.message);
@@ -2043,9 +2043,6 @@ class OauthBoot {
   guard() {
     return async (req, res, next) => {
       try {
-        console.log("req.params", req.params);
-        console.log(req.path);
-
         const exp = this.expressSecured.get(req.path);
         if (exp === ":" || exp === undefined) return next();
         const parsedExp = exp.split(":");
@@ -2110,6 +2107,8 @@ class OauthBoot {
             (p.applicationPart === parsedExp[0] &&
               p.allowedTerm.indexOf(parsedExp[1]) !== -1)
         );
+        console.log("req.params", req.params);
+        console.log(req.path);
         if (patternIndex !== -1) return next();
         return res
           .status(403)
