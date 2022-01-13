@@ -1000,6 +1000,8 @@ class OauthBoot {
       "OAUTH2_user:select",
       async (req, res) => {
         try {
+          console.log(req.params);
+          console.log("req.params.id", req.params.id);
           if (isNaN(req.params.id)) {
             return res.status(400).json({
               code: 400000,
@@ -2041,7 +2043,9 @@ class OauthBoot {
   guard() {
     return async (req, res, next) => {
       try {
-        console.log(req.params);
+        console.log("req.params", req.params);
+        console.log(req.path);
+
         const exp = this.expressSecured.get(req.path);
         if (exp === ":" || exp === undefined) return next();
         const parsedExp = exp.split(":");
