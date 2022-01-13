@@ -922,8 +922,11 @@ class OauthBoot {
 
           const totalPages = Math.ceil(userTotalCount / itemsPerPage);
 
-          const users = await this.knex
-            .table("OAUTH2_Users")
+          const users = await this.knex({
+            OAUTH2_Roles: this.knex("OAUTH2_Users")
+              .limit(itemsPerPage)
+              .offset(offset),
+          })
             .select(
               "OAUTH2_Users.id",
               "OAUTH2_Users.username",
@@ -966,8 +969,6 @@ class OauthBoot {
               "OAUTH2_Options.applicationPart_id"
             )
             .where("OAUTH2_Users.deleted", false)
-            .limit(itemsPerPage)
-            .offset(offset)
             .orderBy("id", order);
 
           const parsedUsers = this.parseSubjectSearch(users, "user");
@@ -1031,8 +1032,11 @@ class OauthBoot {
 
           const totalPages = Math.ceil(userTotalCount / itemsPerPage);
 
-          const clients = await this.knex
-            .table("OAUTH2_Clients")
+          const clients = await this.knex({
+            OAUTH2_Roles: this.knex("OAUTH2_Clients")
+              .limit(itemsPerPage)
+              .offset(offset),
+          })
             .select(
               "OAUTH2_Clients.id",
               "OAUTH2_Clients.identifier",
@@ -1075,8 +1079,6 @@ class OauthBoot {
               "OAUTH2_Options.applicationPart_id"
             )
             .where("OAUTH2_Clients.deleted", false)
-            .limit(itemsPerPage)
-            .offset(offset)
             .orderBy("id", order);
 
           const parsedUsers = this.parseSubjectSearch(clients, "client");
@@ -1428,8 +1430,11 @@ class OauthBoot {
 
           const totalPages = Math.ceil(rolesTotalCount / itemsPerPage);
 
-          const roles = await this.knex
-            .table("OAUTH2_Roles")
+          const roles = await this.knex({
+            OAUTH2_Roles: this.knex("OAUTH2_Roles")
+              .limit(itemsPerPage)
+              .offset(offset),
+          })
             .select(
               "OAUTH2_Roles.id",
               "OAUTH2_Roles.identifier",
@@ -1454,11 +1459,8 @@ class OauthBoot {
               "OAUTH2_Options.applicationPart_id"
             )
             .where("OAUTH2_Roles.deleted", false)
-            .limit(itemsPerPage)
-            .offset(offset)
             .orderBy("OAUTH2_Roles.id", order);
 
-          console.log("roles", roles);
           const parsedRoles = this.parseRoleSearch(roles);
 
           console.log("parsedRoles", parsedRoles);
@@ -1554,8 +1556,7 @@ class OauthBoot {
           const partsFullResult = await this.knex({
             OAUTH2_ApplicationPart: this.knex("OAUTH2_ApplicationPart")
               .limit(itemsPerPage)
-              .offset(offset)
-              .orderBy("OAUTH2_ApplicationPart.id", order),
+              .offset(offset),
           })
             .select(
               "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
@@ -1569,9 +1570,8 @@ class OauthBoot {
               "OAUTH2_ApplicationPart.id"
             )
             .where("OAUTH2_ApplicationPart.deleted", false)
-            .where("OAUTH2_Options.deleted", false);
-
-          console.log(partsFullResult);
+            .where("OAUTH2_Options.deleted", false)
+            .orderBy("OAUTH2_ApplicationPart.id", order);
 
           const parsedParts = this.parsePartSearch(partsFullResult);
 
