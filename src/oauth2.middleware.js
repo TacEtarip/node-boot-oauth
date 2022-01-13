@@ -1490,7 +1490,7 @@ class OauthBoot {
       "OAUTH2_application:select",
       async (req, res) => {
         try {
-          const parts = await this.knex
+          let partsSelectBasicQuery = this.knex
             .table("OAUTH2_Options")
             .select(
               "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
@@ -1506,12 +1506,67 @@ class OauthBoot {
             .where("OAUTH2_ApplicationPart.deleted", false)
             .where("OAUTH2_Options.deleted", false);
 
-          const parsedParts = this.parsePartSearch(parts);
+          if (req.query["basic"] && req.query["basic"] == "true") {
+            const partsBasicResult = await partsSelectBasicQuery;
+            const parsedParts = this.parsePartSearch(partsBasicResult);
+
+            return res.status(200).json({
+              code: 200000,
+              message: "Select completed",
+              content: parsedParts,
+            });
+          }
+
+          let itemsPerPage = 5;
+          let pageIndex = 0;
+          let order = "desc";
+
+          if (
+            req.query["itemsPerPage"] &&
+            parseInt(req.query["itemsPerPage"]) >= 1
+          ) {
+            itemsPerPage = parseInt(req.query["itemsPerPage"]);
+          }
+
+          if (req.query["pageIndex"] && parseInt(req.query["pageIndex"]) >= 0) {
+            pageIndex = parseInt(req.query["pageIndex"]);
+          }
+
+          if (
+            req.query["order"] &&
+            (req.query["order"] === "desc" || req.query["order"] === "asc")
+          ) {
+            order = req.query["order"];
+          }
+
+          const offset = itemsPerPage * pageIndex;
+
+          const partsTotalCount = (
+            await this.knex
+              .table("OAUTH2_ApplicationPart")
+              .where("OAUTH2_ApplicationPart.deleted", false)
+              .count()
+          )[0]["count(*)"];
+
+          const totalPages = Math.ceil(partsTotalCount / itemsPerPage);
+
+          const partsFullResult = partsSelectBasicQuery
+            .limit(itemsPerPage)
+            .offset(offset)
+            .orderBy("OAUTH2_ApplicationPart.id", order);
+
+          const parsedParts = this.parsePartSearch(partsFullResult);
 
           return res.status(200).json({
             code: 200000,
             message: "Select completed",
-            content: parsedParts,
+            content: {
+              items: parsedParts,
+              pageIndex,
+              itemsPerPage,
+              totalItems: partsTotalCount,
+              totalPages,
+            },
           });
         } catch (error) {
           console.log(error);
