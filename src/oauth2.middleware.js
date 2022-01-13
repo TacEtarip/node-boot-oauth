@@ -607,22 +607,22 @@ class OauthBoot {
   bootOauthExpress(expressApp) {
     expressApp.obPost = (path, allowed, ...handler) => {
       expressApp.set(path, allowed);
-      return expressApp.post(path, this.guard, ...handler);
+      return expressApp.post(path, this.guard(), ...handler);
     };
 
     expressApp.obGet = (path, allowed, ...handler) => {
       expressApp.set(path, allowed);
-      return expressApp.get(path, this.guard, ...handler);
+      return expressApp.get(path, this.guard(), ...handler);
     };
 
     expressApp.obPut = (path, allowed, ...handler) => {
       expressApp.set(path, allowed);
-      return expressApp.put(path, this.guard, ...handler);
+      return expressApp.put(path, this.guard(), ...handler);
     };
 
     expressApp.obDelete = (path, allowed, ...handler) => {
       expressApp.set(path, allowed);
-      return expressApp.delete(path, this.guard, ...handler);
+      return expressApp.delete(path, this.guard(), ...handler);
     };
 
     return expressApp;
