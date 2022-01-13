@@ -923,7 +923,7 @@ class OauthBoot {
           const totalPages = Math.ceil(userTotalCount / itemsPerPage);
 
           const users = await this.knex({
-            OAUTH2_Roles: this.knex("OAUTH2_Users")
+            OAUTH2_Users: this.knex("OAUTH2_Users")
               .limit(itemsPerPage)
               .offset(offset),
           })
@@ -1033,7 +1033,7 @@ class OauthBoot {
           const totalPages = Math.ceil(userTotalCount / itemsPerPage);
 
           const clients = await this.knex({
-            OAUTH2_Roles: this.knex("OAUTH2_Clients")
+            OAUTH2_Clients: this.knex("OAUTH2_Clients")
               .limit(itemsPerPage)
               .offset(offset),
           })
