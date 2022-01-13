@@ -1551,11 +1551,12 @@ class OauthBoot {
 
           const totalPages = Math.ceil(partsTotalCount / itemsPerPage);
 
-          const partsFullResult = await this.knex
-            .table("OAUTH2_ApplicationPart")
-            .limit(itemsPerPage)
-            .offset(offset)
-            .orderBy("OAUTH2_ApplicationPart.id", order)
+          const partsFullResult = await this.knex({
+            OAUTH2_ApplicationPart: this.knex("OAUTH2_ApplicationPart")
+              .limit(itemsPerPage)
+              .offset(offset)
+              .orderBy("OAUTH2_ApplicationPart.id", order),
+          })
             .select(
               "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
               "OAUTH2_ApplicationPart.id as partId",
@@ -1569,6 +1570,8 @@ class OauthBoot {
             )
             .where("OAUTH2_ApplicationPart.deleted", false)
             .where("OAUTH2_Options.deleted", false);
+
+          console.log(partsFullResult);
 
           const parsedParts = this.parsePartSearch(partsFullResult);
 
