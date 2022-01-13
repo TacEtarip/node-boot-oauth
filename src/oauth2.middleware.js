@@ -1571,7 +1571,8 @@ class OauthBoot {
             )
             .where("OAUTH2_ApplicationPart.deleted", false)
             .where("OAUTH2_Options.deleted", false)
-            .orderBy("OAUTH2_ApplicationPart.id", order);
+            .orderBy("OAUTH2_ApplicationPart.id", order)
+            .orderBy("OAUTH2_Options.id", "asc");
 
           const parsedParts = this.parsePartSearch(partsFullResult);
 
