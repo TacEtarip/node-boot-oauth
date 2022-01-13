@@ -998,6 +998,9 @@ class OauthBoot {
     this.expressSecured.obGet(
       "/auth/user/:id",
       "OAUTH2_user:select",
+      (req, res) => {
+        console.log(req.params);
+      },
       async (req, res) => {
         try {
           console.log(req.params);
@@ -2044,10 +2047,7 @@ class OauthBoot {
     return async (req, res, next) => {
       try {
         const exp = this.expressSecured.get(req.path);
-        console.log(exp);
-        console.log(req.params);
-        console.log("req.params.id", req.params.id);
-        console.log(req.path);
+        console.log(req);
         if (exp === ":" || exp === undefined) return next();
         const parsedExp = exp.split(":");
         if (parsedExp.length !== 2) {
