@@ -2050,7 +2050,8 @@ class OauthBoot {
             console.log("to replace");
             console.log(req.params[param]);
             console.log(pathToSearch);
-            pathToSearch.replace(req.params[param], `:${param}`);
+            console.log(params);
+            pathToSearch.replace(req.params[param], `x`);
           }
         }
         console.log(pathToSearch);
