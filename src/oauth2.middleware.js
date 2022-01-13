@@ -1183,7 +1183,7 @@ class OauthBoot {
 
     // Update user roles
     this.expressSecured.obPut(
-      "/auth/user/role/:id",
+      "/auth/user/:id/role",
       "OAUTH2_user:update",
       this.validateBody({
         roles: { type: "array" },
@@ -1230,7 +1230,7 @@ class OauthBoot {
 
     // Update client roles
     this.expressSecured.obPut(
-      "/auth/client/role/:id",
+      "/auth/client/:id/role",
       "OAUTH2_client:update",
       this.validateBody({
         roles: { type: "array" },
