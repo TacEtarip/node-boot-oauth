@@ -1555,6 +1555,8 @@ class OauthBoot {
             .offset(offset)
             .orderBy("OAUTH2_ApplicationPart.id", order);
 
+          console.log(partsFullResult);
+
           const parsedParts = this.parsePartSearch(partsFullResult);
 
           return res.status(200).json({
