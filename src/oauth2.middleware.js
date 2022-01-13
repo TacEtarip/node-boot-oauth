@@ -270,6 +270,7 @@ class OauthBoot {
         table.integer("applications_id").unsigned().notNullable();
         table.foreign("applications_id").references("OAUTH2_Applications.id");
         table.boolean("deleted").defaultTo(false);
+        table.unique(["partIdentifier", "id"]);
         table.timestamps(true, true);
       });
 
