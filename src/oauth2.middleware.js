@@ -260,6 +260,7 @@ class OauthBoot {
       await this.knex.schema.createTable("OAUTH2_Applications", (table) => {
         table.increments("id");
         table.string("identifier", 100).notNullable().unique();
+        table.boolean("deleted").defaultTo(false);
         table.timestamps(true, true);
       });
 
@@ -993,6 +994,80 @@ class OauthBoot {
       }
     );
 
+    // Get User
+    this.expressSecured.obGet(
+      "/auth/user/:id",
+      "OAUTH2_user:select",
+      async (req, res) => {
+        try {
+          if (isNaN(req.params.id)) {
+            return res.status(400).json({
+              code: 400000,
+              message: "Invalid user id",
+            });
+          }
+          const users = await this.knex
+            .table("OAUTH2_Users")
+            .select(
+              "OAUTH2_Users.id",
+              "OAUTH2_Users.username",
+              "OAUTH2_Subjects.id as subjectId",
+              "OAUTH2_Subjects.name",
+              "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
+              "OAUTH2_ApplicationPart.id as partId",
+              "OAUTH2_Options.allowed",
+              "OAUTH2_Roles.id as roleId",
+              "OAUTH2_Roles.identifier as roleIdentifier"
+            )
+            .join(
+              "OAUTH2_Subjects",
+              `OAUTH2_Users.subject_id`,
+              "OAUTH2_Subjects.id"
+            )
+            .join(
+              "OAUTH2_SubjectRole",
+              `OAUTH2_Users.subject_id`,
+              "OAUTH2_SubjectRole.subject_id"
+            )
+            .join(
+              "OAUTH2_Roles",
+              `OAUTH2_Roles.id`,
+              "OAUTH2_SubjectRole.roles_id"
+            )
+            .join(
+              "OAUTH2_RoleOption",
+              `OAUTH2_RoleOption.roles_id`,
+              "OAUTH2_SubjectRole.roles_id"
+            )
+            .join(
+              "OAUTH2_Options",
+              `OAUTH2_Options.id`,
+              "OAUTH2_RoleOption.options_id"
+            )
+            .join(
+              "OAUTH2_ApplicationPart",
+              `OAUTH2_ApplicationPart.id`,
+              "OAUTH2_Options.applicationPart_id"
+            )
+            .where("OAUTH2_Users.id", req.params.id);
+
+          const parsedUsers = this.parseSubjectSearch(users, "user");
+
+          return res.status(200).json({
+            code: 200000,
+            message: "Select completed",
+            content: parsedUsers,
+          });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
     // Get Clients
     this.expressSecured.obGet(
       "/auth/client",
@@ -1687,6 +1762,46 @@ class OauthBoot {
       }
     );
 
+    // Create Part
+    this.expressSecured.obPost(
+      "/auth/part",
+      "OAUTH2_application:create",
+      this.validateBody({
+        partIdentifier: { type: "string" },
+        applications_id: { type: "number" },
+      }),
+      async (req, res) => {
+        try {
+          const { partIdentifier, applications_id } = req.body;
+
+          const insertResult = await this.knex("OAUTH2_ApplicationPart").insert(
+            {
+              partIdentifier,
+              applications_id,
+            }
+          );
+
+          const optionsToInsert = [
+            { allowed: "*", applicationPart_id: insertResult[0] },
+            { allowed: "create", applicationPart_id: insertResult[0] },
+            { allowed: "update", applicationPart_id: insertResult[0] },
+            { allowed: "delete", applicationPart_id: insertResult[0] },
+            { allowed: "select", applicationPart_id: insertResult[0] },
+          ];
+
+          await this.knex("OAUTH2_Options").insert(optionsToInsert);
+
+          return res.status(201).json({ code: 200000, message: "Part added" });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
     // Update part options
     this.expressSecured.obPut(
       "/auth/part/option",
@@ -1747,6 +1862,75 @@ class OauthBoot {
           return res.status(200).json({
             code: 200000,
             message: "Part options updated",
+          });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    // Delete part
+    this.expressSecured.obPut(
+      "/auth/part",
+      "OAUTH2_application:delete",
+      async (req, res) => {
+        try {
+          const partId = req.query["id"];
+
+          if (!partId) {
+            return res.status(400).json({
+              code: 400001,
+              message: "Part id is required",
+            });
+          }
+
+          await this.knex.transaction(async (trx) => {
+            try {
+              await trx("OAUTH2_ApplicationPart")
+                .update({ deleted: true })
+                .where({ id: partId });
+
+              await trx("OAUTH2_Options")
+                .update({ deleted: true })
+                .where({ applicationPart_id: partId });
+            } catch (error) {
+              throw new Error(error.message);
+            }
+          });
+
+          return res.status(200).json({
+            code: 200000,
+            message: "Part options updated",
+          });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    // Select option
+    this.expressSecured.obGet(
+      "/auth/role",
+      "OAUTH2_application:select",
+      async (req, res) => {
+        try {
+          const applications = await this.knex
+            .table("OAUTH2_Applications")
+            .select("id", "identifier")
+            .where({ deleted: false });
+
+          return res.status(200).json({
+            code: 200000,
+            message: "Select completed",
+            content: applications,
           });
         } catch (error) {
           console.log(error);
@@ -1857,6 +2041,7 @@ class OauthBoot {
   guard() {
     return async (req, res, next) => {
       try {
+        console.log(req.params);
         const exp = this.expressSecured.get(req.path);
         if (exp === ":" || exp === undefined) return next();
         const parsedExp = exp.split(":");
