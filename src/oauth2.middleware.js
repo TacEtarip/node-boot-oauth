@@ -1490,26 +1490,25 @@ class OauthBoot {
       "OAUTH2_application:select",
       async (req, res) => {
         try {
-          let partsSelectBasicQuery = this.knex
-            .table("OAUTH2_ApplicationPart")
-            .select(
-              "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
-              "OAUTH2_ApplicationPart.id as partId",
-              "OAUTH2_Options.allowed",
-              "OAUTH2_Options.id as optionId"
-            )
-            .join(
-              "OAUTH2_Options",
-              `OAUTH2_Options.applicationPart_id`,
-              "OAUTH2_ApplicationPart.id"
-            )
-            .where("OAUTH2_ApplicationPart.deleted", false)
-            .where("OAUTH2_Options.deleted", false);
-
-          console.log(partsSelectBasicQuery);
-
           if (req.query["basic"] && req.query["basic"] == "true") {
+            const partsSelectBasicQuery = this.knex
+              .table("OAUTH2_ApplicationPart")
+              .select(
+                "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
+                "OAUTH2_ApplicationPart.id as partId",
+                "OAUTH2_Options.allowed",
+                "OAUTH2_Options.id as optionId"
+              )
+              .join(
+                "OAUTH2_Options",
+                `OAUTH2_Options.applicationPart_id`,
+                "OAUTH2_ApplicationPart.id"
+              )
+              .where("OAUTH2_ApplicationPart.deleted", false)
+              .where("OAUTH2_Options.deleted", false);
+
             const partsBasicResult = await partsSelectBasicQuery;
+            console.log(partsBasicResult);
             const parsedParts = this.parsePartSearch(partsBasicResult);
 
             return res.status(200).json({
@@ -1552,12 +1551,24 @@ class OauthBoot {
 
           const totalPages = Math.ceil(partsTotalCount / itemsPerPage);
 
-          const partsFullResult = await partsSelectBasicQuery
+          const partsFullResult = await this.knex
+            .table("OAUTH2_ApplicationPart")
             .limit(itemsPerPage)
             .offset(offset)
-            .orderBy("OAUTH2_ApplicationPart.id", order);
-
-          console.log(partsFullResult);
+            .orderBy("OAUTH2_ApplicationPart.id", order)
+            .select(
+              "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
+              "OAUTH2_ApplicationPart.id as partId",
+              "OAUTH2_Options.allowed",
+              "OAUTH2_Options.id as optionId"
+            )
+            .join(
+              "OAUTH2_Options",
+              `OAUTH2_Options.applicationPart_id`,
+              "OAUTH2_ApplicationPart.id"
+            )
+            .where("OAUTH2_ApplicationPart.deleted", false)
+            .where("OAUTH2_Options.deleted", false);
 
           const parsedParts = this.parsePartSearch(partsFullResult);
 
