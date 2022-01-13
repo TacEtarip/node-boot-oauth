@@ -1911,7 +1911,7 @@ class OauthBoot {
 
     // Select option
     this.expressSecured.obGet(
-      "/auth/role",
+      "/auth/application",
       "OAUTH2_application:select",
       async (req, res) => {
         try {
