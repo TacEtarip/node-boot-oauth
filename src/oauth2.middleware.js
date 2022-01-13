@@ -1909,7 +1909,7 @@ class OauthBoot {
       }
     );
 
-    // Select option
+    // Select applications
     this.expressSecured.obGet(
       "/auth/application",
       "OAUTH2_application:select",
@@ -2155,6 +2155,7 @@ class OauthBoot {
             }
             break;
           case "number":
+            console.log("validating this", req.body[option]);
             if (!!/^-?[\d.]+(?:e-?\d+)?$/.test(req.body[option])) {
               return res.status(400).json({
                 code: 400000,
