@@ -612,7 +612,7 @@ class OauthBoot {
 
     expressApp.obGet = (path, allowed, ...handler) => {
       expressApp.set(path, allowed);
-      return expressApp.get(path, ...handler);
+      return expressApp.get(path, this.guard, ...handler);
     };
 
     expressApp.obPut = (path, allowed, ...handler) => {
@@ -998,9 +998,6 @@ class OauthBoot {
     this.expressSecured.obGet(
       "/auth/user/:id",
       "OAUTH2_user:select",
-      (req, res) => {
-        console.log(req.params);
-      },
       async (req, res) => {
         try {
           console.log(req.params);
