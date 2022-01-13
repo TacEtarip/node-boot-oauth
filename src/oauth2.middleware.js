@@ -1687,6 +1687,77 @@ class OauthBoot {
       }
     );
 
+    // Update part options
+    this.expressSecured.obPut(
+      "/auth/part/option",
+      "OAUTH2_application:update",
+      this.validateBody({
+        newPartOptions: { type: "array" },
+        originalPartOptions: { type: "array" },
+      }),
+      async (req, res) => {
+        try {
+          const { newPartOptions, originalPartOptions } = req.body;
+
+          const partId = req.query["id"];
+
+          if (!partId) {
+            return res.status(400).json({
+              code: 400001,
+              message: "Part id is required",
+            });
+          }
+
+          await this.knex.transaction(async (trx) => {
+            try {
+              const optionsToInsert = [];
+
+              for (const option of newPartOptions) {
+                const indexOnOriginal = originalPartOptions.findIndex(
+                  (opt) => opt.allowed.toLowerCase() === option.allowed
+                );
+                if (indexOnOriginal === -1) {
+                  optionsToInsert.push({
+                    allowed: option.allowed.toLowerCase(),
+                    applicationPart_id: partId,
+                  });
+                }
+              }
+
+              for (const option of originalPartOptions) {
+                const indexOnNew = newPartOptions.findIndex(
+                  (opt) => opt.allowed.toLowerCase() === option.allowed
+                );
+                if (indexOnNew === -1) {
+                  await trx("OAUTH2_Options").update({ deleted: true }).where({
+                    allowed: option.allowed,
+                    applicationPart_id: partId,
+                  });
+                }
+              }
+
+              if (optionsToInsert.length !== 0) {
+                await trx("OAUTH2_Options").insert(roleOptionToInsert);
+              }
+            } catch (error) {
+              throw new Error(error.message);
+            }
+          });
+
+          return res.status(200).json({
+            code: 200000,
+            message: "Part options updated",
+          });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
     // LOGIN
     this.expressSecured.obPost(
       "/auth/login",
