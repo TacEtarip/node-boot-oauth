@@ -15,8 +15,8 @@ class OauthBoot {
     try {
       await this.auditDataBase();
       this.expressSecured.use(this.decodeToken());
-      this.expressSecured.use(this.guard());
       this.addEndPoints();
+      this.expressSecured.use(this.guard());
     } catch (error) {
       console.log(error);
       throw new Error(error.message);
