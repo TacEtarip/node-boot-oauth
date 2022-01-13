@@ -1947,7 +1947,7 @@ class OauthBoot {
             {
               id: usersBaseArray[index].roleId,
               identifier: usersBaseArray[index].roleIdentifier,
-              options: [
+              parts: [
                 {
                   id: usersBaseArray[index].partId,
                   applicationPartName: usersBaseArray[index].applicationPart,
@@ -1967,7 +1967,7 @@ class OauthBoot {
           newArray[lastIndex].roles.push({
             id: usersBaseArray[index].roleId,
             identifier: usersBaseArray[index].roleIdentifier,
-            options: [
+            parts: [
               {
                 id: usersBaseArray[index].partId,
                 applicationPartName: usersBaseArray[index].applicationPart,
@@ -1978,18 +1978,18 @@ class OauthBoot {
         } else {
           const indexOption = newArray[lastIndex].roles[
             indexRole
-          ].options.findIndex(
+          ].parts.findIndex(
             (o) =>
               o.applicationPartName === usersBaseArray[index].applicationPart
           );
           if (indexOption === -1) {
-            newArray[lastIndex].roles[indexRole].options.push({
+            newArray[lastIndex].roles[indexRole].parts.push({
               id: usersBaseArray[index].partId,
               applicationPartName: usersBaseArray[index].applicationPart,
               allowed: [usersBaseArray[index].allowed],
             });
           } else {
-            newArray[lastIndex].roles[indexRole].options[
+            newArray[lastIndex].roles[indexRole].parts[
               indexOption
             ].allowed.push(usersBaseArray[index].allowed);
           }
@@ -2010,7 +2010,7 @@ class OauthBoot {
         const roleObject = {
           id: rolesBaseArray[index].id,
           identifier: rolesBaseArray[index].identifier,
-          options: [
+          parts: [
             {
               id: rolesBaseArray[index].partId,
               applicationPartName: rolesBaseArray[index].applicationPart,
@@ -2026,11 +2026,11 @@ class OauthBoot {
         newArray.push(roleObject);
       } else {
         const lastIndex = newArray.length - 1;
-        const indexOption = newArray[lastIndex].options.findIndex(
+        const indexOption = newArray[lastIndex].parts.findIndex(
           (o) => o.applicationPartName === rolesBaseArray[index].applicationPart
         );
         if (indexOption === -1) {
-          newArray[lastIndex].options.push({
+          newArray[lastIndex].parts.push({
             id: rolesBaseArray[index].partId,
             applicationPartName: rolesBaseArray[index].applicationPart,
             allowed: [
@@ -2041,7 +2041,7 @@ class OauthBoot {
             ],
           });
         } else {
-          newArray[lastIndex].options[indexOption].allowed.push({
+          newArray[lastIndex].parts[indexOption].allowed.push({
             allowed: rolesBaseArray[index].allowed,
             id: rolesBaseArray[index].optionId,
           });
