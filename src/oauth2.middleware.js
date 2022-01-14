@@ -1949,17 +1949,33 @@ class OauthBoot {
           const { username, password } = req.body;
           const preUser = await this.knex
             .table("OAUTH2_Users")
-            .select("OAUTH2_Subjects.name", "OAUTH2_Users.*")
+            .select(
+              "OAUTH2_Subjects.name",
+              "OAUTH2_Users.*",
+              "OAUTH2_Roles.identifier as roles"
+            )
             .join(
               "OAUTH2_Subjects",
               "OAUTH2_Users.subject_id",
               "OAUTH2_Subjects.id"
             )
+            .join(
+              "OAUTH2_SubjectRole",
+              "OAUTH2_SubjectRole.subject_id",
+              "OAUTH2_Subjects.id"
+            )
+            .join(
+              "OAUTH2_Roles",
+              "OAUTH2_Roles.id",
+              "OAUTH2_SubjectRole.roles_id"
+            )
             .where("OAUTH2_Users.username", username.toLowerCase());
-          // const user = this.joinSearch(preUser, "id", "subject_id")[0];
+
+          const parsedUser = this.joinSearch(preUser, "id", "roles");
+          console.log(parsedUser);
           const correctPassword = await bcrypt.compare(
             password,
-            preUser[0].password
+            parsedUser[0].password
           );
           if (!correctPassword) {
             return res.status(401).json({
@@ -1986,8 +2002,9 @@ class OauthBoot {
             content: {
               jwt_token: token,
               username,
-              name: preUser[0].name,
-              userId: preUser[0].id,
+              name: parsedUser[0].name,
+              userId: parsedUser[0].id,
+              roles: parsedUser[0].roles,
             },
           });
         } catch (error) {
