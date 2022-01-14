@@ -1083,7 +1083,6 @@ class OauthBoot {
               message: "Forbidden user",
             });
           }
-          console.log("res.locals.user", res.locals.user);
           if (res.locals.user && res.locals.user.subjectType !== "user") {
             return res.status(400).json({
               code: 400001,
@@ -1487,6 +1486,52 @@ class OauthBoot {
             .update({ name });
 
           return res.json({ code: 200000, message: "User updated" });
+        } catch (error) {
+          return res.status(500).json({
+            code: 500000,
+            message: error.message,
+          });
+        }
+      }
+    );
+
+    // Update password
+    this.expressSecured.obPut(
+      "/auth/user/:id/password",
+      "OAUTH2_user:update",
+      this.validateBody({
+        newPassword: { type: "string" },
+        oldPassword: { type: "string" },
+      }),
+      async (req, res) => {
+        try {
+          const { newPassword, oldPassword } = req.body;
+
+          const user = await this.knex
+            .table("OAUTH2_Users")
+            .select()
+            .where({ id: req.params.id });
+
+          const correctPassword = await bcrypt.compare(
+            oldPassword,
+            user[0].password
+          );
+
+          if (!correctPassword) {
+            return res.status(401).json({
+              code: 400001,
+              message: "Incorrect password",
+            });
+          }
+
+          const encryptedPassword = await bcrypt.hash(newPassword, 10);
+
+          await this.knex
+            .table("OAUTH2_Users")
+            .update({ password: encryptedPassword })
+            .where({ id: req.params.id });
+
+          return res.json({ code: 200000, message: "User password updated" });
         } catch (error) {
           return res.status(500).json({
             code: 500000,
