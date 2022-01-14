@@ -629,7 +629,7 @@ class OauthBoot {
     return expressApp;
   }
 
-  static bootOauthExpressRouter(expressApp, expressRouter) {
+  bootOauthExpressRouter(expressApp, expressRouter) {
     expressRouter.obPost = (path, allowed, ...handler) => {
       expressApp.set(path, allowed);
       return expressRouter.post(path, this.guard(), ...handler);
