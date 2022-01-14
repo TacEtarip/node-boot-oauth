@@ -1071,6 +1071,84 @@ class OauthBoot {
       }
     );
 
+    // Get User profile
+    this.expressSecured.obGet("/auth/user/me", ":", async (req, res) => {
+      try {
+        if (!res.locals.user) {
+          return res.status(403).json({
+            code: 400301,
+            message: "Forbidden user",
+          });
+        }
+
+        if (res.locals.user && res.locals.user.subjectType !== "user") {
+          return res.status(400).json({
+            code: 400001,
+            message: "Invalid subject user",
+          });
+        }
+
+        const users = await this.knex
+          .table("OAUTH2_Users")
+          .select(
+            "OAUTH2_Users.id",
+            "OAUTH2_Users.username",
+            "OAUTH2_Subjects.id as subjectId",
+            "OAUTH2_Subjects.name",
+            "OAUTH2_ApplicationPart.partIdentifier as applicationPart",
+            "OAUTH2_ApplicationPart.id as partId",
+            "OAUTH2_Options.allowed",
+            "OAUTH2_Roles.id as roleId",
+            "OAUTH2_Roles.identifier as roleIdentifier"
+          )
+          .join(
+            "OAUTH2_Subjects",
+            `OAUTH2_Users.subject_id`,
+            "OAUTH2_Subjects.id"
+          )
+          .join(
+            "OAUTH2_SubjectRole",
+            `OAUTH2_Users.subject_id`,
+            "OAUTH2_SubjectRole.subject_id"
+          )
+          .join(
+            "OAUTH2_Roles",
+            `OAUTH2_Roles.id`,
+            "OAUTH2_SubjectRole.roles_id"
+          )
+          .join(
+            "OAUTH2_RoleOption",
+            `OAUTH2_RoleOption.roles_id`,
+            "OAUTH2_SubjectRole.roles_id"
+          )
+          .join(
+            "OAUTH2_Options",
+            `OAUTH2_Options.id`,
+            "OAUTH2_RoleOption.options_id"
+          )
+          .join(
+            "OAUTH2_ApplicationPart",
+            `OAUTH2_ApplicationPart.id`,
+            "OAUTH2_Options.applicationPart_id"
+          )
+          .where("OAUTH2_Users.username", res.locals.user.username);
+
+        const parsedUsers = this.parseSubjectSearch(users, "user");
+
+        return res.status(200).json({
+          code: 200000,
+          message: "Select completed",
+          content: parsedUsers[0],
+        });
+      } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+          code: 500000,
+          message: error.message,
+        });
+      }
+    });
+
     // Get Clients
     this.expressSecured.obGet(
       "/auth/client",
@@ -1972,7 +2050,6 @@ class OauthBoot {
             .where("OAUTH2_Users.username", username.toLowerCase());
 
           const parsedUser = this.joinSearch(preUser, "id", "roles");
-          console.log(parsedUser);
           const correctPassword = await bcrypt.compare(
             password,
             parsedUser[0].password
