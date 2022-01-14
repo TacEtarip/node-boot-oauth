@@ -1080,7 +1080,7 @@ class OauthBoot {
             message: "Forbidden user",
           });
         }
-
+        console.log(res.locals.user);
         if (res.locals.user && res.locals.user.subjectType !== "user") {
           return res.status(400).json({
             code: 400001,
