@@ -788,7 +788,6 @@ class OauthBoot {
                   });
                 }
               }
-              console.log(insertRoleOptions);
               await trx("OAUTH2_RoleOption").insert(insertRoleOptions);
             } catch (error) {
               throw new Error(error.message);
@@ -1001,8 +1000,6 @@ class OauthBoot {
       "OAUTH2_user:select",
       async (req, res) => {
         try {
-          console.log(req.params);
-          console.log("req.params.id", req.params.id);
           if (isNaN(req.params.id)) {
             return res.status(400).json({
               code: 400000,
@@ -1518,7 +1515,7 @@ class OauthBoot {
           );
 
           if (!correctPassword) {
-            return res.status(401).json({
+            return res.status(400).json({
               code: 400001,
               message: "Incorrect password",
             });
@@ -1658,8 +1655,6 @@ class OauthBoot {
             .orderBy("OAUTH2_Roles.id", order);
 
           const parsedRoles = this.parseRoleSearch(roles);
-
-          console.log("parsedRoles", parsedRoles);
 
           return res.status(200).json({
             code: 200000,
