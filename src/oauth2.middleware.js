@@ -629,25 +629,25 @@ class OauthBoot {
     return expressApp;
   }
 
-  static bootOauthExpressRouter(expressRouter) {
+  static bootOauthExpressRouter(expressApp, expressRouter) {
     expressRouter.obPost = (path, allowed, ...handler) => {
-      expressRouter.set(path, allowed);
-      return expressRouter.post(path, ...handler);
+      expressApp.set(path, allowed);
+      return expressRouter.post(path, this.guard(), ...handler);
     };
 
     expressRouter.obGet = (path, allowed, ...handler) => {
-      expressRouter.set(path, allowed);
-      return expressRouter.get(path, ...handler);
+      expressApp.set(path, allowed);
+      return expressRouter.get(path, this.guard(), ...handler);
     };
 
-    expressRouter.put = (path, allowed, ...handler) => {
-      expressRouter.set(path, allowed);
-      return expressRouter.put(path, ...handler);
+    expressRouter.obPut = (path, allowed, ...handler) => {
+      expressApp.set(path, allowed);
+      return expressRouter.put(path, this.guard(), ...handler);
     };
 
     expressRouter.obDelete = (path, allowed, ...handler) => {
-      expressRouter.set(path, allowed);
-      return expressRouter.delete(path, ...handler);
+      expressApp.set(path, allowed);
+      return expressRouter.delete(path, this.guard(), ...handler);
     };
 
     return expressRouter;
