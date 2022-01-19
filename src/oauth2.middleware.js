@@ -4,11 +4,12 @@ const randomstring = require("randomstring");
 const fs = require("fs").promises;
 const path = require("path");
 class OauthBoot {
-  constructor(expressApp, knex, jwtSecret) {
+  constructor(expressApp, knex, jwtSecret, extraParts = []) {
     this.expressApp = expressApp;
     this.knex = knex;
     this.expressSecured = this.bootOauthExpress(expressApp);
     this.jwtSecret = jwtSecret;
+    this.extraParts = extraParts;
   }
 
   async init() {
@@ -345,6 +346,10 @@ class OauthBoot {
 
           const applicationPartIds = [];
 
+          const extraPartsToInsert = this.extraParts.map((part) => {
+            return { applications_id: applicationId[0], partIdentifier: part };
+          });
+
           const partsToInsert = [
             {
               applications_id: applicationId[0],
@@ -372,14 +377,12 @@ class OauthBoot {
             },
           ];
 
-          for (const part of partsToInsert) {
+          for (const part of [...partsToInsert, ...extraPartsToInsert]) {
             const applicationPartId = await trx(
               "OAUTH2_ApplicationPart"
             ).insert(part);
             applicationPartIds.push(applicationPartId[0]);
           }
-
-          console.log(applicationPartIds);
 
           const oauthInsert = [
             {
@@ -487,6 +490,38 @@ class OauthBoot {
               allowed: "select",
             },
           ];
+
+          for (let index = 0; index < applicationPartIds.length; index++) {
+            if (index === 0) {
+              oauthInsert.push({
+                applicationPart_id: applicationPartIds[index],
+                allowed: "*",
+              });
+            } else {
+              oauthInsert.push(
+                {
+                  applicationPart_id: applicationPartIds[index],
+                  allowed: "*",
+                },
+                {
+                  applicationPart_id: applicationPartIds[index],
+                  allowed: "create",
+                },
+                {
+                  applicationPart_id: applicationPartIds[index],
+                  allowed: "update",
+                },
+                {
+                  applicationPart_id: applicationPartIds[index],
+                  allowed: "delete",
+                },
+                {
+                  applicationPart_id: applicationPartIds[index],
+                  allowed: "select",
+                }
+              );
+            }
+          }
 
           const optionId = await trx("OAUTH2_Options").insert(oauthInsert);
 
