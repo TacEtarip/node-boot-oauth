@@ -926,7 +926,8 @@ class OauthBoot {
           const users = await this.knex({
             OAUTH2_Users: this.knex("OAUTH2_Users")
               .limit(itemsPerPage)
-              .offset(offset),
+              .offset(offset)
+              .orderBy("id", order),
           })
             .select(
               "OAUTH2_Users.id",
@@ -969,9 +970,7 @@ class OauthBoot {
               `OAUTH2_ApplicationPart.id`,
               "OAUTH2_Options.applicationPart_id"
             )
-            .where("OAUTH2_Users.deleted", false)
-            .orderBy("id", order);
-
+            .where("OAUTH2_Users.deleted", false);
           const parsedUsers = this.parseSubjectSearch(users, "user");
           return res.status(200).json({
             code: 200000,
@@ -1191,7 +1190,8 @@ class OauthBoot {
           const clients = await this.knex({
             OAUTH2_Clients: this.knex("OAUTH2_Clients")
               .limit(itemsPerPage)
-              .offset(offset),
+              .offset(offset)
+              .orderBy("id", order),
           })
             .select(
               "OAUTH2_Clients.id",
@@ -1234,9 +1234,7 @@ class OauthBoot {
               `OAUTH2_ApplicationPart.id`,
               "OAUTH2_Options.applicationPart_id"
             )
-            .where("OAUTH2_Clients.deleted", false)
-            .orderBy("id", order);
-
+            .where("OAUTH2_Clients.deleted", false);
           const parsedUsers = this.parseSubjectSearch(clients, "client");
 
           return res.status(200).json({
@@ -1626,7 +1624,8 @@ class OauthBoot {
           const roles = await this.knex({
             OAUTH2_Roles: this.knex("OAUTH2_Roles")
               .limit(itemsPerPage)
-              .offset(offset),
+              .offset(offset)
+              .orderBy("OAUTH2_Roles.id", order),
           })
             .select(
               "OAUTH2_Roles.id",
@@ -1651,9 +1650,7 @@ class OauthBoot {
               `OAUTH2_ApplicationPart.id`,
               "OAUTH2_Options.applicationPart_id"
             )
-            .where("OAUTH2_Roles.deleted", false)
-            .orderBy("OAUTH2_Roles.id", order);
-
+            .where("OAUTH2_Roles.deleted", false);
           const parsedRoles = this.parseRoleSearch(roles);
 
           return res.status(200).json({
@@ -1747,7 +1744,8 @@ class OauthBoot {
           const partsFullResult = await this.knex({
             OAUTH2_ApplicationPart: this.knex("OAUTH2_ApplicationPart")
               .limit(itemsPerPage)
-              .offset(offset),
+              .offset(offset)
+              .orderBy("OAUTH2_ApplicationPart.id", order),
           })
             .select(
               "OAUTH2_ApplicationPart.partIdentifier as applicationPartName",
@@ -1762,7 +1760,6 @@ class OauthBoot {
             )
             .where("OAUTH2_ApplicationPart.deleted", false)
             .where("OAUTH2_Options.deleted", false)
-            .orderBy("OAUTH2_ApplicationPart.id", order)
             .orderBy("OAUTH2_Options.id", "asc");
 
           const parsedParts = this.parsePartSearch(partsFullResult);
